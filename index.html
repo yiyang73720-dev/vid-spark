@@ -12,7 +12,7 @@
   <meta name="twitter:title" content="VidSpark — Short-Form Video That Sells">
   <meta name="twitter:description" content="Professional TikTok, Reels & Shorts for your business. From $149/mo. Cancel anytime.">
   <meta name="theme-color" content="#0a0a0a">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f68d2e'/><polygon points='40,25 75,50 40,75' fill='white'/></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%23fb923c'/><stop offset='100%25' stop-color='%23ea580c'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><path d='M38 22L58 50L38 78' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/><path d='M62 30L52 52L66 48L54 72' fill='white' opacity='0.9'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -176,6 +176,15 @@
     /* Number counter */
     .stat-number { font-variant-numeric: tabular-nums; }
 
+    /* Logo spark animation */
+    @keyframes spark-pulse {
+      0%, 100% { opacity: 0.95; filter: drop-shadow(0 0 0px rgba(246,141,46,0)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 6px rgba(246,141,46,0.6)); }
+    }
+    .group:hover svg path:last-child {
+      animation: spark-pulse 0.8s ease-in-out;
+    }
+
     /* Fractal canvas sizing */
     #fractal-bg { image-rendering: auto; }
 
@@ -205,10 +214,17 @@
       <div class="flex items-center justify-between h-[72px]">
         <!-- Logo -->
         <a href="#" class="flex items-center gap-2.5 group">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-sm group-hover:shadow-glow-sm transition-shadow duration-500">
-            <svg class="w-4.5 h-4.5 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+          <div class="w-10 h-10 rounded-[12px] bg-gradient-to-br from-accent-400 via-accent-500 to-accent-700 flex items-center justify-center shadow-sm group-hover:shadow-glow-sm transition-all duration-500 relative overflow-hidden">
+            <!-- Shimmer effect on hover -->
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <svg class="w-6 h-6 relative z-10" viewBox="0 0 24 24" fill="none">
+              <!-- Play-V shape -->
+              <path d="M7 4L15 12L7 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Lightning spark -->
+              <path d="M15.5 6L12 12.5L16.5 11L13 18.5" fill="white" opacity="0.95"/>
+            </svg>
           </div>
-          <span class="text-[22px] font-display font-bold tracking-tight text-white transition-colors duration-300">Vid<span class="text-accent-500">Spark</span></span>
+          <span class="text-[22px] font-display font-bold tracking-tight text-white transition-colors duration-300">Vid<span class="text-accent-400">Spark</span></span>
         </a>
 
         <!-- Desktop Links -->
@@ -742,92 +758,114 @@
   </section>
 
   <!-- ======================= PRICING ======================= -->
-  <section id="pricing" class="py-20 lg:py-28">
-    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+  <section id="pricing" class="py-20 lg:py-28 bg-surface-950 text-white relative overflow-hidden">
+    <div class="absolute inset-0 hero-grid opacity-30"></div>
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-500/20 to-transparent"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-500/20 to-transparent"></div>
+
+    <div class="relative max-w-[1280px] mx-auto px-6 lg:px-8">
       <div class="max-w-2xl mx-auto text-center mb-6 reveal">
         <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">Pricing</p>
-        <h2 class="text-display-md font-display">Simple plans.<br>Honest pricing.</h2>
-        <p class="mt-5 text-[17px] text-surface-400">No hidden fees. No contracts. Pause or cancel anytime.</p>
+        <h2 class="text-display-md font-display">Pick your plan.<br>Scale when ready.</h2>
+        <p class="mt-5 text-[17px] text-white/40">No hidden fees. No contracts. Pause or cancel anytime.</p>
       </div>
 
       <!-- Toggle -->
       <div class="flex items-center justify-center gap-3 mb-14 reveal">
-        <span class="text-[14px] font-medium text-surface-600" id="label-monthly">Monthly</span>
+        <span class="text-[14px] font-medium text-white/70" id="label-monthly">Monthly</span>
         <div class="toggle-track" id="billing-toggle" onclick="toggleBilling()">
           <div class="toggle-thumb"></div>
         </div>
-        <span class="text-[14px] font-medium text-surface-400" id="label-annual">Annually <span class="text-accent-500 font-bold text-[13px]">save 20%</span></span>
+        <span class="text-[14px] font-medium text-white/40" id="label-annual">Annual <span class="text-accent-500 font-bold text-[12px] ml-1 px-2 py-0.5 bg-accent-500/10 rounded-full">-20%</span></span>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-[1080px] mx-auto">
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-[1200px] mx-auto">
+
+        <!-- Free Trial -->
+        <div class="reveal rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-7 card-premium">
+          <div class="text-[12px] font-semibold uppercase tracking-[0.12em] text-white/40 mb-3">Free Trial</div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-[40px] font-display font-bold tracking-tight">$0</span>
+          </div>
+          <p class="text-[13px] text-white/30 mt-2 min-h-[40px]">Try before you buy. One free video to see the quality.</p>
+          <div class="mt-6 h-px bg-white/10"></div>
+          <ul class="mt-6 space-y-3">
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong class="text-white/70">1 video</strong></span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>1 platform</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Captions & music</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>7-day delivery</span></li>
+          </ul>
+          <a href="#contact" class="mt-8 block w-full py-3 text-center text-[13px] font-semibold rounded-full border border-white/15 text-white/70 hover:border-white/30 hover:text-white transition-all">Try Free</a>
+        </div>
+
         <!-- Starter -->
-        <div class="reveal rounded-3xl border border-surface-200 bg-white p-8 lg:p-10 card-premium">
-          <div class="text-[13px] font-semibold uppercase tracking-[0.1em] text-surface-400 mb-1">Starter</div>
-          <div class="flex items-baseline gap-1 mt-3">
-            <span class="text-[48px] font-display font-bold tracking-tight price-m">$149</span>
-            <span class="text-[48px] font-display font-bold tracking-tight price-a hidden">$119</span>
-            <span class="text-[15px] text-surface-400 font-medium">/mo</span>
+        <div class="reveal reveal-delay-1 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-7 card-premium">
+          <div class="text-[12px] font-semibold uppercase tracking-[0.12em] text-white/40 mb-3">Starter</div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-[40px] font-display font-bold tracking-tight price-m">$149</span>
+            <span class="text-[40px] font-display font-bold tracking-tight price-a hidden">$119</span>
+            <span class="text-[14px] text-white/30 font-medium">/mo</span>
           </div>
-          <p class="text-[14px] text-surface-400 mt-2">Great for getting started with video content.</p>
-          <div class="mt-8 h-px bg-surface-100"></div>
-          <ul class="mt-8 space-y-4">
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>4 videos</strong> per month</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>1 platform</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Captions, music & transitions</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>1 revision per video</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>5-day delivery</span></li>
+          <p class="text-[13px] text-white/30 mt-2 min-h-[40px]">Get started with consistent content. Perfect for solo businesses.</p>
+          <div class="mt-6 h-px bg-white/10"></div>
+          <ul class="mt-6 space-y-3">
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong class="text-white/70">4 videos</strong> / month</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>1 platform</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Captions, music & transitions</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>1 revision / video</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>5-day delivery</span></li>
           </ul>
-          <a href="#contact" class="mt-10 block w-full py-3.5 text-center text-[14px] font-semibold rounded-full border-2 border-surface-200 text-surface-700 hover:border-surface-900 hover:text-surface-900 transition-all">Get Started</a>
+          <a href="#contact" class="mt-8 block w-full py-3 text-center text-[13px] font-semibold rounded-full border border-white/15 text-white/70 hover:border-white/30 hover:text-white transition-all">Get Started</a>
         </div>
 
-        <!-- Growth — Popular -->
-        <div class="reveal reveal-delay-1 rounded-3xl border-2 border-accent-500 bg-white p-8 lg:p-10 card-premium relative shadow-glow-sm">
-          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
-            <span class="px-4 py-1.5 bg-accent-500 text-white text-[11px] font-bold uppercase tracking-[0.1em] rounded-full shadow-lg">Most Popular</span>
+        <!-- Growth — Most Popular -->
+        <div class="reveal reveal-delay-2 rounded-2xl p-[1px] bg-gradient-to-b from-accent-500 via-accent-500/40 to-accent-500/10 card-premium relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+            <span class="px-3.5 py-1 bg-accent-500 text-white text-[10px] font-bold uppercase tracking-[0.12em] rounded-full shadow-lg shadow-accent-500/30">Most Popular</span>
           </div>
-          <div class="text-[13px] font-semibold uppercase tracking-[0.1em] text-accent-500 mb-1">Growth</div>
-          <div class="flex items-baseline gap-1 mt-3">
-            <span class="text-[48px] font-display font-bold tracking-tight price-m">$299</span>
-            <span class="text-[48px] font-display font-bold tracking-tight price-a hidden">$239</span>
-            <span class="text-[15px] text-surface-400 font-medium">/mo</span>
+          <div class="rounded-[15px] bg-surface-950 p-7 h-full">
+            <div class="text-[12px] font-semibold uppercase tracking-[0.12em] text-accent-500 mb-3">Growth</div>
+            <div class="flex items-baseline gap-1">
+              <span class="text-[40px] font-display font-bold tracking-tight price-m">$299</span>
+              <span class="text-[40px] font-display font-bold tracking-tight price-a hidden">$239</span>
+              <span class="text-[14px] text-white/30 font-medium">/mo</span>
+            </div>
+            <p class="text-[13px] text-white/30 mt-2 min-h-[40px]">Dominate social with consistent, high-quality content across platforms.</p>
+            <div class="mt-6 h-px bg-white/10"></div>
+            <ul class="mt-6 space-y-3">
+              <li class="flex gap-2.5 text-[13px] text-white/60"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong class="text-white/90">8 videos</strong> / month</span></li>
+              <li class="flex gap-2.5 text-[13px] text-white/60"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong class="text-white/90">2 platforms</strong></span></li>
+              <li class="flex gap-2.5 text-[13px] text-white/60"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Custom hooks & scripts</span></li>
+              <li class="flex gap-2.5 text-[13px] text-white/60"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>2 revisions / video</span></li>
+              <li class="flex gap-2.5 text-[13px] text-white/60"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Copywriting included</span></li>
+              <li class="flex gap-2.5 text-[13px] text-white/60"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Monthly performance report</span></li>
+            </ul>
+            <a href="#contact" class="mt-8 block w-full py-3 text-center text-[13px] font-semibold rounded-full btn-primary text-white">Get Started</a>
           </div>
-          <p class="text-[14px] text-surface-400 mt-2">For businesses ready to dominate social.</p>
-          <div class="mt-8 h-px bg-surface-100"></div>
-          <ul class="mt-8 space-y-4">
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>8 videos</strong> per month</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>2 platforms</strong> included</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Custom hooks & scripts</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>2 revisions per video</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Monthly performance report</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Copywriting included</span></li>
-          </ul>
-          <a href="#contact" class="mt-10 block w-full py-3.5 text-center text-[14px] font-semibold rounded-full btn-primary text-white">Get Started</a>
         </div>
 
-        <!-- Pro -->
-        <div class="reveal reveal-delay-2 rounded-3xl border border-surface-200 bg-white p-8 lg:p-10 card-premium">
-          <div class="text-[13px] font-semibold uppercase tracking-[0.1em] text-surface-400 mb-1">Pro</div>
-          <div class="flex items-baseline gap-1 mt-3">
-            <span class="text-[48px] font-display font-bold tracking-tight price-m">$599</span>
-            <span class="text-[48px] font-display font-bold tracking-tight price-a hidden">$479</span>
-            <span class="text-[15px] text-surface-400 font-medium">/mo</span>
+        <!-- Enterprise -->
+        <div class="reveal reveal-delay-3 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-7 card-premium">
+          <div class="text-[12px] font-semibold uppercase tracking-[0.12em] text-white/40 mb-3">Enterprise</div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-[40px] font-display font-bold tracking-tight">Custom</span>
           </div>
-          <p class="text-[14px] text-surface-400 mt-2">Full-service video marketing machine.</p>
-          <div class="mt-8 h-px bg-surface-100"></div>
-          <ul class="mt-8 space-y-4">
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>16 videos</strong> per month</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>All platforms</strong></span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>We post for you</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Unlimited revisions</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Ad creative variants</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Dedicated account manager</span></li>
-            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Priority 3-day delivery</span></li>
+          <p class="text-[13px] text-white/30 mt-2 min-h-[40px]">Full-service video marketing. We become your content team.</p>
+          <div class="mt-6 h-px bg-white/10"></div>
+          <ul class="mt-6 space-y-3">
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong class="text-white/70">16+ videos</strong> / month</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong class="text-white/70">All platforms</strong></span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>We post for you</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Unlimited revisions</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Ad creative variants</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Dedicated account manager</span></li>
+            <li class="flex gap-2.5 text-[13px] text-white/50"><svg class="w-4 h-4 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Priority 3-day delivery</span></li>
           </ul>
-          <a href="#contact" class="mt-10 block w-full py-3.5 text-center text-[14px] font-semibold rounded-full border-2 border-surface-200 text-surface-700 hover:border-surface-900 hover:text-surface-900 transition-all">Get Started</a>
+          <a href="#contact" class="mt-8 block w-full py-3 text-center text-[13px] font-semibold rounded-full border border-white/15 text-white/70 hover:border-white/30 hover:text-white transition-all">Contact Sales</a>
         </div>
       </div>
 
-      <p class="text-center text-[13px] text-surface-400 mt-10">All plans include: free revisions &bull; cancel anytime &bull; no contracts &bull; 14-day money-back guarantee</p>
+      <p class="text-center text-[13px] text-white/25 mt-10">All plans include: cancel anytime &bull; no contracts &bull; 14-day money-back guarantee &bull; commercial usage rights</p>
     </div>
   </section>
 
@@ -1081,8 +1119,11 @@
       <div class="grid md:grid-cols-4 gap-10 lg:gap-16">
         <div class="md:col-span-1">
           <a href="#" class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
-              <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+            <div class="w-9 h-9 rounded-[11px] bg-gradient-to-br from-accent-400 via-accent-500 to-accent-700 flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                <path d="M7 4L15 12L7 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M15.5 6L12 12.5L16.5 11L13 18.5" fill="white" opacity="0.95"/>
+              </svg>
             </div>
             <span class="text-[18px] font-display font-bold text-white">Vid<span class="text-accent-400">Spark</span></span>
           </a>
@@ -1252,10 +1293,10 @@
     function toggleBilling() {
       isAnnual = !isAnnual;
       document.getElementById('billing-toggle').classList.toggle('active', isAnnual);
-      document.getElementById('label-monthly').classList.toggle('text-surface-600', !isAnnual);
-      document.getElementById('label-monthly').classList.toggle('text-surface-400', isAnnual);
-      document.getElementById('label-annual').classList.toggle('text-surface-400', !isAnnual);
-      document.getElementById('label-annual').classList.toggle('text-surface-600', isAnnual);
+      document.getElementById('label-monthly').classList.toggle('text-white/70', !isAnnual);
+      document.getElementById('label-monthly').classList.toggle('text-white/30', isAnnual);
+      document.getElementById('label-annual').classList.toggle('text-white/40', !isAnnual);
+      document.getElementById('label-annual').classList.toggle('text-white/70', isAnnual);
       document.querySelectorAll('.price-m').forEach(el => el.classList.toggle('hidden', isAnnual));
       document.querySelectorAll('.price-a').forEach(el => el.classList.toggle('hidden', !isAnnual));
     }
