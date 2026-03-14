@@ -1,539 +1,890 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VidSpark — Short-Form Video That Drives Sales | From $99/mo</title>
-  <meta name="description" content="Professional short-form video content for TikTok, Instagram Reels & YouTube Shorts. Trusted by 500+ US small businesses. Plans from $99/mo. Cancel anytime.">
+  <title>VidSpark — Scroll-Stopping Short-Form Videos for Small Businesses</title>
+  <meta name="description" content="Professional TikTok, Reels & YouTube Shorts for US small businesses. From $149/mo. Cancel anytime. 5-day delivery.">
+  <meta property="og:title" content="VidSpark — Short-Form Video That Sells">
+  <meta property="og:description" content="Professional short-form video for your business. From $149/mo.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VidSpark — Short-Form Video That Sells">
+  <meta name="twitter:description" content="Professional TikTok, Reels & Shorts for your business. From $149/mo. Cancel anytime.">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f68d2e'/><polygon points='40,25 75,50 40,75' fill='white'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+          },
           colors: {
-            brand: { 50:'#f0f5ff', 100:'#e0ebff', 200:'#b8d4fe', 300:'#7cb4fc', 400:'#3b8ff8', 500:'#1a6ef5', 600:'#0b52d4', 700:'#0941ab', 800:'#0c378d', 900:'#103374' },
-            dark: { 900:'#0a0a0f', 800:'#12121a', 700:'#1a1a26' }
+            accent: { 50:'#fff7ed', 100:'#ffedd5', 200:'#fed7aa', 300:'#fdba74', 400:'#fb923c', 500:'#f68d2e', 600:'#ea580c', 700:'#c2410c' },
+            surface: { 50:'#fafafa', 100:'#f5f5f5', 200:'#e5e5e5', 300:'#d4d4d4', 400:'#a3a3a3', 500:'#737373', 600:'#525252', 700:'#404040', 800:'#262626', 900:'#171717', 950:'#0a0a0a' },
+          },
+          fontSize: {
+            'display-xl': ['4.5rem', { lineHeight: '1.05', letterSpacing: '-0.03em', fontWeight: '800' }],
+            'display-lg': ['3.5rem', { lineHeight: '1.08', letterSpacing: '-0.025em', fontWeight: '800' }],
+            'display-md': ['2.5rem', { lineHeight: '1.12', letterSpacing: '-0.02em', fontWeight: '700' }],
+            'display-sm': ['1.875rem', { lineHeight: '1.2', letterSpacing: '-0.015em', fontWeight: '700' }],
+          },
+          boxShadow: {
+            'glow': '0 0 80px 20px rgba(246,141,46,0.12)',
+            'glow-sm': '0 0 40px 10px rgba(246,141,46,0.08)',
+            'card': '0 1px 3px rgba(0,0,0,0.04), 0 6px 16px rgba(0,0,0,0.04)',
+            'card-hover': '0 4px 12px rgba(0,0,0,0.06), 0 20px 40px rgba(0,0,0,0.08)',
+            'elevated': '0 24px 48px -12px rgba(16,24,40,0.08), 0 8px 16px -4px rgba(16,24,40,0.03)',
+          },
+          borderRadius: {
+            '2xl': '16px',
+            '3xl': '24px',
           }
         }
       }
     }
   </script>
   <style>
+    /* === BASE === */
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* === GRADIENTS === */
+    .gradient-text {
+      background: linear-gradient(135deg, #f68d2e 0%, #ea580c 50%, #f68d2e 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-border {
+      background: linear-gradient(135deg, rgba(246,141,46,0.3), rgba(246,141,46,0.05));
+    }
+    .hero-glow {
+      background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(246,141,46,0.12) 0%, transparent 70%);
+    }
+    .hero-grid {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* === ANIMATIONS === */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes float { 0%,100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(-12px) rotate(1deg); } }
+    @keyframes marquee { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
+    @keyframes pulse-ring { 0% { transform:scale(0.9); opacity:0.8; } 100% { transform:scale(2.2); opacity:0; } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes counter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    .animate-fade-up { animation: fadeUp 0.8s ease-out both; }
+    .animate-fade-in { animation: fadeIn 0.6s ease-out both; }
+    .animate-float { animation: float 6s ease-in-out infinite; }
+    .animate-marquee { animation: marquee 30s linear infinite; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* === SCROLL REVEAL === */
+    .reveal { opacity:0; transform:translateY(30px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* === COMPONENTS === */
+    .card-glass {
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .card-premium {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-premium:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 48px -12px rgba(16,24,40,0.12), 0 8px 16px -4px rgba(16,24,40,0.04);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f68d2e 0%, #ea580c 100%);
+      box-shadow: 0 4px 16px rgba(246,141,46,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 8px 24px rgba(246,141,46,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      border: 1.5px solid rgba(0,0,0,0.12);
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      border-color: rgba(0,0,0,0.24);
+      background: rgba(0,0,0,0.02);
+    }
+    .btn-dark {
+      background: #0a0a0a;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+      transition: all 0.3s ease;
+    }
+    .btn-dark:hover {
+      background: #171717;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Phone mockup */
+    .phone-frame {
+      border-radius: 32px;
+      box-shadow: 0 25px 60px -12px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.1) inset, 0 0 0 1px rgba(0,0,0,0.3);
+    }
+    .phone-notch {
+      width: 80px; height: 22px; background: #000; border-radius: 0 0 16px 16px;
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      z-index: 20;
+    }
+    .phone-notch::after {
+      content: ''; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.08);
+      position: absolute; top: 6px; right: 12px;
+    }
+
+    /* Marquee */
+    .marquee-container { overflow:hidden; mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent); }
+
+    /* Toggle */
+    .toggle-track { width:48px; height:26px; border-radius:26px; background:#e5e5e5; transition:0.3s; cursor:pointer; position:relative; }
+    .toggle-track.active { background:#f68d2e; }
+    .toggle-thumb { width:20px; height:20px; border-radius:50%; background:white; position:absolute; top:3px; left:3px; transition:0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .toggle-track.active .toggle-thumb { left:25px; }
+
+    /* FAQ */
+    details summary { list-style:none; }
+    details summary::-webkit-details-marker { display:none; }
+    details[open] .faq-icon { transform: rotate(45deg); }
+
+    /* Divider */
+    .section-divider { height:1px; background: linear-gradient(90deg, transparent, #e5e5e5 20%, #e5e5e5 80%, transparent); }
+
+    /* Number counter */
+    .stat-number { font-variant-numeric: tabular-nums; }
+
+    /* Fractal canvas sizing */
+    #fractal-bg { image-rendering: auto; }
+
+    /* Contact form focus */
+    input:focus, select:focus, textarea:focus {
+      box-shadow: 0 0 0 3px rgba(246,141,46,0.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2.5rem !important; line-height: 1.1 !important; }
+    }
+    @media (max-width: 480px) {
+      .hero-title { font-size: 2rem !important; }
+    }
+
+    /* Smooth loading */
     html { scroll-behavior: smooth; }
-    .gradient-text { background: linear-gradient(135deg, #1a6ef5 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .card-hover { transition: all 0.3s ease; }
-    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-    .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; pointer-events: none; }
-    .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
-    .fade-in.visible { opacity: 1; transform: translateY(0); }
-    .price-toggle input:checked + .slider { background: #1a6ef5; }
-    .price-toggle input:checked + .slider:before { transform: translateX(24px); }
-    .slider { position: relative; width: 52px; height: 28px; background: #d1d5db; border-radius: 28px; transition: 0.3s; cursor: pointer; }
-    .slider:before { content: ''; position: absolute; width: 22px; height: 22px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.3s; }
-    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    .float-anim { animation: float 6s ease-in-out infinite; }
-    .counter { font-variant-numeric: tabular-nums; }
+    body { -webkit-tap-highlight-color: transparent; }
   </style>
 </head>
-<body class="font-sans text-gray-900 bg-white antialiased">
+<body class="font-sans text-surface-900 bg-white">
 
-  <!-- ==================== NAVBAR ==================== -->
-  <nav id="navbar" class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 transition-all">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16 lg:h-18">
-        <a href="#" class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+  <!-- ======================= NAVBAR ======================= -->
+  <nav id="nav" class="fixed top-0 w-full z-50 transition-all duration-300">
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-[72px]">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-2.5 group">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-sm group-hover:shadow-glow-sm transition-shadow duration-500">
+            <svg class="w-4.5 h-4.5 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
           </div>
-          <span class="text-xl font-bold text-gray-900">Vid<span class="text-brand-600">Spark</span></span>
+          <span class="text-[22px] font-display font-bold tracking-tight text-white transition-colors duration-300">Vid<span class="text-accent-500">Spark</span></span>
         </a>
-        <div class="hidden md:flex items-center gap-8">
-          <a href="#how-it-works" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">How It Works</a>
-          <a href="#pricing" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Pricing</a>
-          <a href="#examples" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Examples</a>
-          <a href="#faq" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">FAQ</a>
+
+        <!-- Desktop Links -->
+        <div class="hidden lg:flex items-center gap-10" id="nav-links">
+          <a href="#how-it-works" class="nav-link text-[14px] font-medium text-white/60 hover:text-white transition-colors">How It Works</a>
+          <a href="#work" class="nav-link text-[14px] font-medium text-white/60 hover:text-white transition-colors">Our Work</a>
+          <a href="#pricing" class="nav-link text-[14px] font-medium text-white/60 hover:text-white transition-colors">Pricing</a>
+          <a href="#faq" class="nav-link text-[14px] font-medium text-white/60 hover:text-white transition-colors">FAQ</a>
+          <a href="#contact" class="nav-link text-[14px] font-medium text-white/60 hover:text-white transition-colors">Contact</a>
         </div>
+
+        <!-- CTA -->
         <div class="flex items-center gap-3">
-          <a href="#pricing" class="hidden sm:inline-flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-full hover:bg-brand-700 transition shadow-lg shadow-brand-600/25">
-            Get Started &mdash; $99/mo
+          <a href="#contact" class="hidden sm:flex items-center gap-2 px-5 py-2.5 btn-dark text-white text-[14px] font-semibold rounded-full">
+            Get Started
+            <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
           </a>
-          <button id="mobile-toggle" class="md:hidden p-2 text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <button id="menu-btn" class="lg:hidden p-2 -mr-2 text-surface-600 hover:text-surface-900">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5"/></svg>
           </button>
         </div>
       </div>
     </div>
-    <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-100 bg-white">
-      <div class="px-4 py-4 space-y-3">
-        <a href="#how-it-works" class="block text-sm font-medium text-gray-700">How It Works</a>
-        <a href="#pricing" class="block text-sm font-medium text-gray-700">Pricing</a>
-        <a href="#examples" class="block text-sm font-medium text-gray-700">Examples</a>
-        <a href="#faq" class="block text-sm font-medium text-gray-700">FAQ</a>
-        <a href="#pricing" class="block w-full text-center px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-full">Get Started</a>
+    <!-- Mobile -->
+    <div id="mobile-nav" class="hidden lg:hidden bg-white border-t border-surface-100">
+      <div class="px-6 py-5 space-y-4">
+        <a href="#how-it-works" class="block text-[15px] font-medium text-surface-700 hover:text-accent-500">How It Works</a>
+        <a href="#work" class="block text-[15px] font-medium text-surface-700 hover:text-accent-500">Our Work</a>
+        <a href="#pricing" class="block text-[15px] font-medium text-surface-700 hover:text-accent-500">Pricing</a>
+        <a href="#faq" class="block text-[15px] font-medium text-surface-700 hover:text-accent-500">FAQ</a>
+        <a href="#contact" class="block text-[15px] font-medium text-surface-700 hover:text-accent-500">Contact</a>
+        <a href="#pricing" class="block w-full text-center py-3 btn-dark text-white text-[15px] font-semibold rounded-full mt-2">Get Started</a>
       </div>
     </div>
   </nav>
 
-  <!-- ==================== HERO ==================== -->
-  <section class="relative pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden">
-    <div class="blob w-96 h-96 bg-brand-400 top-0 right-0"></div>
-    <div class="blob w-80 h-80 bg-purple-400 bottom-0 left-10"></div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-      <div class="text-center max-w-4xl mx-auto">
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-50 border border-brand-200 rounded-full text-sm font-medium text-brand-700 mb-6">
-          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-          Trusted by 500+ US businesses
-        </div>
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight tracking-tight">
-          Short-Form Videos<br>That <span class="gradient-text">Actually Sell</span>
-        </h1>
-        <p class="mt-6 text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-          Professional TikTok, Reels & Shorts content — delivered weekly. No contracts, no hassle. Just scroll-stopping videos that bring customers to your door.
-        </p>
-        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a href="#pricing" class="w-full sm:w-auto px-8 py-4 bg-brand-600 text-white font-bold rounded-full text-lg hover:bg-brand-700 transition shadow-xl shadow-brand-600/30 flex items-center justify-center gap-2">
-            Start for $99/mo
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-          </a>
-          <a href="#examples" class="w-full sm:w-auto px-8 py-4 bg-gray-100 text-gray-700 font-semibold rounded-full text-lg hover:bg-gray-200 transition flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
-            See Examples
-          </a>
-        </div>
-        <div class="mt-10 flex items-center justify-center gap-6 text-sm text-gray-400">
-          <span class="flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
-            Cancel anytime
-          </span>
-          <span class="flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
-            5-day delivery
-          </span>
-          <span class="flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
-            No meetings required
-          </span>
-        </div>
-      </div>
+  <!-- ======================= HERO ======================= -->
+  <section class="relative min-h-screen flex items-center bg-surface-950 text-white overflow-hidden">
+    <!-- Mandelbrot Fractal Background -->
+    <canvas id="fractal-bg" class="absolute inset-0 w-full h-full transition-opacity duration-1000" style="opacity:0;"></canvas>
+    <!-- Background layers -->
+    <div class="absolute inset-0 hero-grid"></div>
+    <div class="absolute inset-0 hero-glow"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-500/30 to-transparent"></div>
 
-      <!-- Video Mockup / Phone Frames -->
-      <div class="mt-16 flex justify-center gap-4 sm:gap-6">
-        <div class="w-36 sm:w-44 h-64 sm:h-80 bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl border-4 border-gray-700 shadow-2xl float-anim overflow-hidden relative">
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="text-center">
-              <div class="w-12 h-12 mx-auto bg-white/20 rounded-full flex items-center justify-center backdrop-blur"><svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg></div>
-              <p class="mt-3 text-white/70 text-xs font-medium">Restaurant Promo</p>
-              <p class="text-white/40 text-[10px]">12.4K views</p>
-            </div>
+    <div class="relative max-w-[1280px] mx-auto px-6 lg:px-8 py-32 lg:py-40 w-full">
+      <div class="grid lg:grid-cols-[1fr,auto] gap-16 lg:gap-20 items-center">
+        <!-- Text -->
+        <div class="max-w-2xl">
+          <div class="animate-fade-up inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm mb-8">
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            <span class="text-[13px] font-medium text-white/70">Now accepting new clients</span>
           </div>
-          <div class="absolute bottom-3 left-3 right-3">
-            <div class="flex items-center gap-1">
-              <div class="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-              <span class="text-[10px] text-white/60">TikTok</span>
-            </div>
-          </div>
-        </div>
-        <div class="w-36 sm:w-44 h-64 sm:h-80 bg-gradient-to-br from-purple-900 to-pink-900 rounded-3xl border-4 border-purple-700 shadow-2xl float-anim overflow-hidden relative" style="animation-delay: 1s">
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="text-center">
-              <div class="w-12 h-12 mx-auto bg-white/20 rounded-full flex items-center justify-center backdrop-blur"><svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg></div>
-              <p class="mt-3 text-white/70 text-xs font-medium">Salon Before/After</p>
-              <p class="text-white/40 text-[10px]">8.7K views</p>
-            </div>
-          </div>
-          <div class="absolute bottom-3 left-3 right-3">
-            <div class="flex items-center gap-1">
-              <div class="w-1.5 h-1.5 bg-gradient-to-r from-yellow-400 to-pink-500 rounded-full"></div>
-              <span class="text-[10px] text-white/60">Reels</span>
-            </div>
-          </div>
-        </div>
-        <div class="hidden sm:block w-44 h-80 bg-gradient-to-br from-red-900 to-orange-900 rounded-3xl border-4 border-red-700 shadow-2xl float-anim overflow-hidden relative" style="animation-delay: 2s">
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="text-center">
-              <div class="w-12 h-12 mx-auto bg-white/20 rounded-full flex items-center justify-center backdrop-blur"><svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg></div>
-              <p class="mt-3 text-white/70 text-xs font-medium">Dental Clinic Tour</p>
-              <p class="text-white/40 text-[10px]">5.2K views</p>
-            </div>
-          </div>
-          <div class="absolute bottom-3 left-3 right-3">
-            <div class="flex items-center gap-1">
-              <div class="w-1.5 h-1.5 bg-red-600 rounded-full"></div>
-              <span class="text-[10px] text-white/60">Shorts</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- ==================== STATS BAR ==================== -->
-  <section class="py-12 bg-gray-50 border-y border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-        <div>
-          <div class="text-3xl sm:text-4xl font-black text-brand-600 counter">2,500+</div>
-          <div class="mt-1 text-sm text-gray-500">Videos Delivered</div>
+          <h1 class="animate-fade-up delay-1 hero-title text-display-xl font-display">
+            Short-form video<br>that <span class="gradient-text">actually sells.</span>
+          </h1>
+
+          <p class="animate-fade-up delay-2 mt-7 text-[18px] leading-relaxed text-white/50 max-w-lg">
+            We create professional TikTok, Reels & Shorts content for your business — delivered weekly, starting at $149/month.
+          </p>
+
+          <div class="animate-fade-up delay-3 mt-10 flex flex-wrap gap-4">
+            <a href="#pricing" class="btn-primary px-8 py-4 text-white text-[15px] font-semibold rounded-full flex items-center gap-2.5">
+              See Plans & Pricing
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </a>
+            <a href="#work" class="btn-secondary px-8 py-4 text-white/80 text-[15px] font-semibold rounded-full border-white/15 hover:border-white/30 hover:bg-white/5 flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+              Watch Examples
+            </a>
+          </div>
+
+          <div class="animate-fade-up delay-4 mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-[13px] text-white/30">
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-accent-500/70" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+              No contracts
+            </span>
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-accent-500/70" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+              5-day delivery
+            </span>
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-accent-500/70" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+              Cancel anytime
+            </span>
+          </div>
         </div>
-        <div>
-          <div class="text-3xl sm:text-4xl font-black text-brand-600 counter">500+</div>
-          <div class="mt-1 text-sm text-gray-500">Happy Businesses</div>
-        </div>
-        <div>
-          <div class="text-3xl sm:text-4xl font-black text-brand-600 counter">4.9<span class="text-lg">/5</span></div>
-          <div class="mt-1 text-sm text-gray-500">Average Rating</div>
-        </div>
-        <div>
-          <div class="text-3xl sm:text-4xl font-black text-brand-600 counter">5 days</div>
-          <div class="mt-1 text-sm text-gray-500">Avg. Delivery Time</div>
+
+        <!-- Phone Mockups — Live Video Previews -->
+        <div class="hidden lg:flex items-end gap-5 relative">
+          <!-- Glow behind phones -->
+          <div class="absolute -inset-20 bg-accent-500/8 rounded-full blur-3xl"></div>
+
+          <!-- Phone 1: Restaurant -->
+          <div class="relative w-[180px] h-[360px] phone-frame bg-black animate-float overflow-hidden" style="animation-delay: 0.5s">
+            <div class="phone-notch z-10"></div>
+            <video class="absolute inset-0 w-full h-full object-cover" src="videos/restaurant_pro.mp4" muted loop playsinline autoplay></video>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
+            <div class="absolute bottom-4 left-3 right-3 z-10">
+              <p class="text-[10px] font-bold text-white">bellacucina_nyc</p>
+              <p class="text-[8px] text-white/60 mt-0.5">Fresh pasta made daily &#127837;</p>
+            </div>
+            <div class="absolute right-2 bottom-16 flex flex-col items-center gap-2.5 z-10">
+              <svg class="w-5 h-5 text-red-500 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg class="w-5 h-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <svg class="w-5 h-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+            </div>
+          </div>
+
+          <!-- Phone 2: Salon (tallest, center) -->
+          <div class="relative w-[180px] h-[390px] phone-frame bg-black animate-float overflow-hidden" style="animation-delay: 0s">
+            <div class="phone-notch z-10"></div>
+            <video class="absolute inset-0 w-full h-full object-cover" src="videos/salon_pro.mp4" muted loop playsinline autoplay></video>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
+            <div class="absolute bottom-4 left-3 right-3 z-10">
+              <p class="text-[10px] font-bold text-white">luxe.hair.studio</p>
+              <p class="text-[8px] text-white/60 mt-0.5">Balayage transformation &#128135;</p>
+            </div>
+            <div class="absolute right-2 bottom-16 flex flex-col items-center gap-2.5 z-10">
+              <svg class="w-5 h-5 text-red-500 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg class="w-5 h-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <svg class="w-5 h-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+            </div>
+          </div>
+
+          <!-- Phone 3: Fitness -->
+          <div class="relative w-[180px] h-[340px] phone-frame bg-black animate-float overflow-hidden" style="animation-delay: 1s">
+            <div class="phone-notch z-10"></div>
+            <video class="absolute inset-0 w-full h-full object-cover" src="videos/fitness_pro.mp4" muted loop playsinline autoplay></video>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
+            <div class="absolute bottom-4 left-3 right-3 z-10">
+              <p class="text-[10px] font-bold text-white">crossfit.phoenix</p>
+              <p class="text-[8px] text-white/60 mt-0.5">6AM crew &#128170;</p>
+            </div>
+            <div class="absolute right-2 bottom-16 flex flex-col items-center gap-2.5 z-10">
+              <svg class="w-5 h-5 text-red-500 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg class="w-5 h-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <svg class="w-5 h-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ==================== PROBLEM / AGITATION ==================== -->
+  <!-- ======================= LOGO MARQUEE ======================= -->
+  <section class="py-14 border-b border-surface-100">
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <p class="text-center text-[12px] font-semibold uppercase tracking-[0.15em] text-surface-400 mb-8">Videos created for businesses across</p>
+      <div class="marquee-container">
+        <div class="flex items-center gap-16 animate-marquee whitespace-nowrap">
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#127869; Restaurants</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#128135; Salons & Spas</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#129658; Dental Clinics</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#127968; Real Estate</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#128170; Fitness Studios</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#128722; Retail Shops</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#128137; Med Spas</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#9749; Coffee Shops</span>
+          <!-- Duplicate for seamless loop -->
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#127869; Restaurants</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#128135; Salons & Spas</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#129658; Dental Clinics</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#127968; Real Estate</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#128170; Fitness Studios</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#128722; Retail Shops</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#128137; Med Spas</span>
+          <span class="text-[15px] font-semibold text-surface-300 flex items-center gap-2">&#9749; Coffee Shops</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= STATS ======================= -->
+  <section class="py-20 lg:py-24">
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div class="text-center reveal">
+          <div class="text-[48px] lg:text-[56px] font-display font-bold tracking-tight stat-number gradient-text">10<span class="text-[32px]">x</span></div>
+          <div class="mt-1 text-[14px] text-surface-400 font-medium">Cheaper Than Agencies</div>
+        </div>
+        <div class="text-center reveal reveal-delay-1">
+          <div class="text-[48px] lg:text-[56px] font-display font-bold tracking-tight stat-number gradient-text">91<span class="text-[32px]">%</span></div>
+          <div class="mt-1 text-[14px] text-surface-400 font-medium">Businesses Use Video</div>
+        </div>
+        <div class="text-center reveal reveal-delay-2">
+          <div class="text-[48px] lg:text-[56px] font-display font-bold tracking-tight stat-number gradient-text">74<span class="text-[32px]">%</span></div>
+          <div class="mt-1 text-[14px] text-surface-400 font-medium">Choose Based on Social</div>
+        </div>
+        <div class="text-center reveal reveal-delay-3">
+          <div class="text-[48px] lg:text-[56px] font-display font-bold tracking-tight stat-number gradient-text">5<span class="text-[28px] ml-1">days</span></div>
+          <div class="mt-1 text-[14px] text-surface-400 font-medium">Average Delivery</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider max-w-[1280px] mx-auto"></div>
+
+  <!-- ======================= PROBLEM ======================= -->
   <section class="py-20 lg:py-28">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto text-center fade-in">
-        <h2 class="text-3xl sm:text-4xl font-bold">You <span class="text-red-500">know</span> you need video content.</h2>
-        <p class="mt-4 text-lg text-gray-500">But let's be honest&hellip;</p>
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="max-w-2xl mx-auto text-center mb-16 reveal">
+        <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">The Problem</p>
+        <h2 class="text-display-md font-display">You know you need video.<br>But it's <span class="gradient-text">impossible</span> to do right.</h2>
       </div>
-      <div class="mt-12 grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        <div class="p-6 bg-red-50 border border-red-100 rounded-2xl fade-in">
-          <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-500 text-xl">&#128553;</div>
-          <h3 class="mt-4 font-bold text-gray-900">You don't have time</h3>
-          <p class="mt-2 text-sm text-gray-500">You're running a business. Between serving customers and managing operations, who has 10+ hours a week for video creation?</p>
+
+      <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div class="reveal p-8 rounded-2xl border border-surface-100 bg-white card-premium">
+          <div class="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-[24px] mb-5">&#9200;</div>
+          <h3 class="text-[18px] font-bold mb-3">No time to create content</h3>
+          <p class="text-[15px] text-surface-500 leading-relaxed">You're running a business. Between customers, staff, and operations — who has 10+ hours a week for video?</p>
         </div>
-        <div class="p-6 bg-orange-50 border border-orange-100 rounded-2xl fade-in" style="transition-delay: 0.1s">
-          <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-500 text-xl">&#128176;</div>
-          <h3 class="mt-4 font-bold text-gray-900">Agencies cost a fortune</h3>
-          <p class="mt-2 text-sm text-gray-500">Traditional video agencies charge $2,000-$10,000/month. That's your entire marketing budget for a handful of videos.</p>
+        <div class="reveal reveal-delay-1 p-8 rounded-2xl border border-surface-100 bg-white card-premium">
+          <div class="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-[24px] mb-5">&#128184;</div>
+          <h3 class="text-[18px] font-bold mb-3">Agencies charge a fortune</h3>
+          <p class="text-[15px] text-surface-500 leading-relaxed">Traditional agencies want $3K-$10K/month. That's your entire budget for a few videos.</p>
         </div>
-        <div class="p-6 bg-yellow-50 border border-yellow-100 rounded-2xl fade-in" style="transition-delay: 0.2s">
-          <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600 text-xl">&#129300;</div>
-          <h3 class="mt-4 font-bold text-gray-900">DIY looks... DIY</h3>
-          <p class="mt-2 text-sm text-gray-500">You've tried making videos yourself. But shaky footage and amateur edits hurt your brand more than they help.</p>
+        <div class="reveal reveal-delay-2 p-8 rounded-2xl border border-surface-100 bg-white card-premium">
+          <div class="w-12 h-12 rounded-2xl bg-yellow-50 flex items-center justify-center text-[24px] mb-5">&#128566;</div>
+          <h3 class="text-[18px] font-bold mb-3">DIY looks... DIY</h3>
+          <p class="text-[15px] text-surface-500 leading-relaxed">Shaky footage and amateur edits hurt your brand more than they help. Your competitors look better.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ==================== SOLUTION ==================== -->
-  <section class="py-20 lg:py-28 bg-dark-900 text-white relative overflow-hidden">
-    <div class="blob w-96 h-96 bg-brand-600 top-10 right-0 opacity-10"></div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-      <div class="max-w-3xl mx-auto text-center">
-        <h2 class="text-3xl sm:text-4xl font-bold">Professional videos.<br><span class="gradient-text">Without the agency price tag.</span></h2>
-        <p class="mt-4 text-lg text-gray-400">VidSpark gives you a dedicated creative team that produces scroll-stopping short-form videos every week &mdash; for less than you'd pay a freelancer.</p>
+  <!-- ======================= HOW IT WORKS ======================= -->
+  <section id="how-it-works" class="py-20 lg:py-28 bg-surface-950 text-white relative overflow-hidden">
+    <div class="absolute inset-0 hero-grid opacity-50"></div>
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-500/20 to-transparent"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-500/20 to-transparent"></div>
+
+    <div class="relative max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="max-w-2xl mx-auto text-center mb-20 reveal">
+        <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">How It Works</p>
+        <h2 class="text-display-md font-display">Three steps.<br>Zero headaches.</h2>
+        <p class="mt-5 text-[17px] text-white/40 max-w-lg mx-auto">No meetings, no back-and-forth, no learning curve. Just great videos, every single week.</p>
       </div>
-      <div class="mt-16 grid md:grid-cols-3 gap-8">
-        <div class="text-center p-8 bg-white/5 rounded-2xl border border-white/10 card-hover">
-          <div class="w-14 h-14 mx-auto bg-brand-600/20 rounded-2xl flex items-center justify-center">
-            <svg class="w-7 h-7 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+
+      <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
+        <div class="reveal relative">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center">
+              <span class="text-[22px] font-display font-bold text-accent-500">01</span>
+            </div>
+            <div class="hidden md:block flex-1 h-px bg-gradient-to-r from-accent-500/30 to-transparent"></div>
           </div>
-          <h3 class="mt-5 text-lg font-bold">TikTok & Reels</h3>
-          <p class="mt-2 text-sm text-gray-400">Platform-optimized vertical videos designed to hook viewers in the first 2 seconds.</p>
+          <h3 class="text-[20px] font-bold mb-3">Send raw clips</h3>
+          <p class="text-[15px] text-white/40 leading-relaxed">Shoot quick clips on your phone — food shots, haircuts, gym sessions. Takes 5 minutes. No fancy gear needed. We also use premium stock footage.</p>
         </div>
-        <div class="text-center p-8 bg-white/5 rounded-2xl border border-white/10 card-hover">
-          <div class="w-14 h-14 mx-auto bg-purple-600/20 rounded-2xl flex items-center justify-center">
-            <svg class="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+        <div class="reveal reveal-delay-1 relative">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center">
+              <span class="text-[22px] font-display font-bold text-accent-500">02</span>
+            </div>
+            <div class="hidden md:block flex-1 h-px bg-gradient-to-r from-accent-500/30 to-transparent"></div>
           </div>
-          <h3 class="mt-5 text-lg font-bold">Branded & Custom</h3>
-          <p class="mt-2 text-sm text-gray-400">Every video matches your brand colors, fonts, and tone. No generic templates.</p>
+          <h3 class="text-[20px] font-bold mb-3">We create magic</h3>
+          <p class="text-[15px] text-white/40 leading-relaxed">Our editors add trending music, captions, transitions, and hooks. Every video is platform-optimized and on-brand. Delivered in 5 days.</p>
         </div>
-        <div class="text-center p-8 bg-white/5 rounded-2xl border border-white/10 card-hover">
-          <div class="w-14 h-14 mx-auto bg-green-600/20 rounded-2xl flex items-center justify-center">
-            <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <div class="reveal reveal-delay-2 relative">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center">
+              <span class="text-[22px] font-display font-bold text-accent-500">03</span>
+            </div>
           </div>
-          <h3 class="mt-5 text-lg font-bold">Performance Tracked</h3>
-          <p class="mt-2 text-sm text-gray-400">Monthly reports showing views, engagement, and growth. We optimize based on what works.</p>
+          <h3 class="text-[20px] font-bold mb-3">Post & grow</h3>
+          <p class="text-[15px] text-white/40 leading-relaxed">Approve your videos (request revisions anytime), post to your channels, and watch your audience grow. Or let us handle posting for you.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ==================== HOW IT WORKS ==================== -->
-  <section id="how-it-works" class="py-20 lg:py-28">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-3xl mx-auto">
-        <div class="inline-flex items-center px-3 py-1 bg-brand-50 text-brand-600 text-sm font-semibold rounded-full mb-4">HOW IT WORKS</div>
-        <h2 class="text-3xl sm:text-4xl font-bold">Three steps to scroll-stopping content</h2>
-        <p class="mt-4 text-lg text-gray-500">No meetings. No back-and-forth. Just great videos, every week.</p>
+  <!-- ======================= WORK / EXAMPLES ======================= -->
+  <section id="work" class="py-20 lg:py-28">
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="max-w-2xl mx-auto text-center mb-16 reveal">
+        <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">Our Work</p>
+        <h2 class="text-display-md font-display">Scroll-stopping content,<br>on repeat.</h2>
       </div>
-      <div class="mt-16 grid md:grid-cols-3 gap-8 lg:gap-12">
-        <div class="relative fade-in">
-          <div class="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg">1</div>
-          <h3 class="mt-5 text-xl font-bold">Send us your raw clips</h3>
-          <p class="mt-3 text-gray-500">Film quick clips on your phone — behind-the-scenes, product shots, team moments. No fancy equipment needed. Or we use premium stock footage.</p>
-          <div class="mt-4 flex items-center gap-2 text-sm text-brand-600 font-medium">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>
-            Takes 5 minutes
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+
+        <!-- Video Card 1: Restaurant -->
+        <div class="reveal group relative aspect-[9/16] rounded-2xl overflow-hidden cursor-pointer card-premium bg-black">
+          <video class="absolute inset-0 w-full h-full object-cover" src="videos/restaurant_pro.mp4" muted loop playsinline></video>
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-500"></div>
+          <!-- TikTok-style UI overlay -->
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <span class="text-[10px] font-bold text-white">BC</span>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-white leading-none">bellacucina_nyc</p>
+                <p class="text-[9px] text-white/50">Sponsored</p>
+              </div>
+            </div>
+          </div>
+          <!-- Right side icons (TikTok style) -->
+          <div class="absolute right-3 bottom-24 flex flex-col items-center gap-4">
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">24.5K</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">842</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">Share</span>
+            </div>
+          </div>
+          <!-- Bottom text overlay -->
+          <div class="absolute bottom-0 left-0 right-12 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+            <p class="text-white font-bold text-[13px]">bellacucina_nyc</p>
+            <p class="text-white/80 text-[11px] mt-1 leading-snug">Fresh pasta made daily in our kitchen &#127837; Come taste the difference! #italianfood #nyceats #freshpasta</p>
+            <div class="flex items-center gap-1.5 mt-2">
+              <svg class="w-3 h-3 text-white/50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              <span class="text-[10px] text-white/50">Original Sound - Bella Cucina</span>
+            </div>
+          </div>
+          <!-- Play button on hover -->
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+            </div>
           </div>
         </div>
-        <div class="relative fade-in" style="transition-delay: 0.15s">
-          <div class="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg">2</div>
-          <h3 class="mt-5 text-xl font-bold">We work our magic</h3>
-          <p class="mt-3 text-gray-500">Our editors add trending music, captions, transitions, hooks, and your branding. Each video is optimized for maximum engagement on each platform.</p>
-          <div class="mt-4 flex items-center gap-2 text-sm text-brand-600 font-medium">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>
-            Delivered in 5 days
+
+        <!-- Video Card 2: Salon -->
+        <div class="reveal reveal-delay-1 group relative aspect-[9/16] rounded-2xl overflow-hidden cursor-pointer card-premium bg-black">
+          <video class="absolute inset-0 w-full h-full object-cover" src="videos/salon_pro.mp4" muted loop playsinline></video>
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-500"></div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <span class="text-[10px] font-bold text-white">LH</span>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-white leading-none">luxe.hair.studio</p>
+                <p class="text-[9px] text-white/50">Sponsored</p>
+              </div>
+            </div>
+          </div>
+          <div class="absolute right-3 bottom-24 flex flex-col items-center gap-4">
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-red-500 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">18.2K</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">1.2K</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">Share</span>
+            </div>
+          </div>
+          <div class="absolute bottom-0 left-0 right-12 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+            <p class="text-white font-bold text-[13px]">luxe.hair.studio</p>
+            <p class="text-white/80 text-[11px] mt-1 leading-snug">This balayage transformation took 3 hours &#128135;&#8205;&#9792;&#65039; Swipe to see the before! #hairtransformation #balayage #salon</p>
+            <div class="flex items-center gap-1.5 mt-2">
+              <svg class="w-3 h-3 text-white/50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              <span class="text-[10px] text-white/50">Trending Audio - Luxe Hair</span>
+            </div>
+          </div>
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+            </div>
           </div>
         </div>
-        <div class="relative fade-in" style="transition-delay: 0.3s">
-          <div class="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg">3</div>
-          <h3 class="mt-5 text-xl font-bold">Post & grow</h3>
-          <p class="mt-3 text-gray-500">Review your videos, request revisions if needed, and post them to your channels. Or let us handle posting for you &mdash; hands-free.</p>
-          <div class="mt-4 flex items-center gap-2 text-sm text-brand-600 font-medium">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>
-            Watch your audience grow
+
+        <!-- Video Card 3: Dental -->
+        <div class="reveal reveal-delay-2 group relative aspect-[9/16] rounded-2xl overflow-hidden cursor-pointer card-premium bg-black">
+          <video class="absolute inset-0 w-full h-full object-cover" src="videos/dental_pro.mp4" muted loop playsinline></video>
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-500"></div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <span class="text-[10px] font-bold text-white">BS</span>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-white leading-none">brightsmile.dental</p>
+                <p class="text-[9px] text-white/50">Sponsored</p>
+              </div>
+            </div>
+          </div>
+          <div class="absolute right-3 bottom-24 flex flex-col items-center gap-4">
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">9.8K</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">356</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">Share</span>
+            </div>
+          </div>
+          <div class="absolute bottom-0 left-0 right-12 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+            <p class="text-white font-bold text-[13px]">brightsmile.dental</p>
+            <p class="text-white/80 text-[11px] mt-1 leading-snug">Meet Dr. Sarah and our amazing team! &#129657; New patients get a free consultation &#128071; #dentist #smilemaker #dentalcare</p>
+            <div class="flex items-center gap-1.5 mt-2">
+              <svg class="w-3 h-3 text-white/50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              <span class="text-[10px] text-white/50">Original Sound - BrightSmile</span>
+            </div>
+          </div>
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Card 4: Fitness -->
+        <div class="reveal reveal-delay-3 group relative aspect-[9/16] rounded-2xl overflow-hidden cursor-pointer card-premium bg-black">
+          <video class="absolute inset-0 w-full h-full object-cover" src="videos/fitness_pro.mp4" muted loop playsinline></video>
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-500"></div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <span class="text-[10px] font-bold text-white">CF</span>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-white leading-none">crossfit.phoenix</p>
+                <p class="text-[9px] text-white/50">Sponsored</p>
+              </div>
+            </div>
+          </div>
+          <div class="absolute right-3 bottom-24 flex flex-col items-center gap-4">
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-red-500 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">31.1K</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">2.1K</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <svg class="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+              <span class="text-[10px] text-white font-semibold mt-0.5">Share</span>
+            </div>
+          </div>
+          <div class="absolute bottom-0 left-0 right-12 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+            <p class="text-white font-bold text-[13px]">crossfit.phoenix</p>
+            <p class="text-white/80 text-[11px] mt-1 leading-snug">6AM crew went CRAZY today &#128170;&#127995; First class free — link in bio! #crossfit #fitness #gymlife #workout</p>
+            <div class="flex items-center gap-1.5 mt-2">
+              <svg class="w-3 h-3 text-white/50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              <span class="text-[10px] text-white/50">Trending Audio - Gym Motivation</span>
+            </div>
+          </div>
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Subtext -->
+      <div class="mt-10 text-center reveal">
+        <p class="text-[14px] text-surface-400">Sample videos with stock footage. <strong class="text-surface-600">Your videos will feature your actual business content.</strong></p>
+        <a href="#contact" class="inline-flex items-center gap-2 mt-4 text-[14px] font-semibold text-accent-500 hover:text-accent-600 transition">
+          Get a free sample for your business
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= WHAT'S INCLUDED ======================= -->
+  <section class="py-20 lg:py-28 bg-surface-50 border-y border-surface-100">
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="max-w-2xl mx-auto text-center mb-14 reveal">
+        <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">Every Video Includes</p>
+        <h2 class="text-display-sm font-display">Everything you need.<br>Nothing you don't.</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+        <div class="reveal flex gap-4 p-6 rounded-2xl bg-white border border-surface-100 card-premium">
+          <div class="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center shrink-0 text-[20px]">&#127911;</div>
+          <div>
+            <h4 class="text-[15px] font-bold mb-1">Trending Audio</h4>
+            <p class="text-[13px] text-surface-400 leading-relaxed">Licensed music that boosts reach and matches your brand vibe.</p>
+          </div>
+        </div>
+        <div class="reveal reveal-delay-1 flex gap-4 p-6 rounded-2xl bg-white border border-surface-100 card-premium">
+          <div class="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center shrink-0 text-[20px]">&#128172;</div>
+          <div>
+            <h4 class="text-[15px] font-bold mb-1">Captions & Subtitles</h4>
+            <p class="text-[13px] text-surface-400 leading-relaxed">80% of viewers watch on mute. Every video has eye-catching captions.</p>
+          </div>
+        </div>
+        <div class="reveal reveal-delay-2 flex gap-4 p-6 rounded-2xl bg-white border border-surface-100 card-premium">
+          <div class="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center shrink-0 text-[20px]">&#127912;</div>
+          <div>
+            <h4 class="text-[15px] font-bold mb-1">Pro Transitions</h4>
+            <p class="text-[13px] text-surface-400 leading-relaxed">Smooth cuts, zooms, and motion graphics that keep viewers watching.</p>
+          </div>
+        </div>
+        <div class="reveal flex gap-4 p-6 rounded-2xl bg-white border border-surface-100 card-premium">
+          <div class="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center shrink-0 text-[20px]">&#128203;</div>
+          <div>
+            <h4 class="text-[15px] font-bold mb-1">Script & Copywriting</h4>
+            <p class="text-[13px] text-surface-400 leading-relaxed">Hooks, CTAs, and captions written to convert viewers into customers.</p>
+          </div>
+        </div>
+        <div class="reveal reveal-delay-1 flex gap-4 p-6 rounded-2xl bg-white border border-surface-100 card-premium">
+          <div class="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center shrink-0 text-[20px]">&#128241;</div>
+          <div>
+            <h4 class="text-[15px] font-bold mb-1">Platform Optimized</h4>
+            <p class="text-[13px] text-surface-400 leading-relaxed">Formatted for TikTok, Reels, and Shorts. Safe zones, aspect ratios, all handled.</p>
+          </div>
+        </div>
+        <div class="reveal reveal-delay-2 flex gap-4 p-6 rounded-2xl bg-white border border-surface-100 card-premium">
+          <div class="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center shrink-0 text-[20px]">&#128640;</div>
+          <div>
+            <h4 class="text-[15px] font-bold mb-1">Ready to Post</h4>
+            <p class="text-[13px] text-surface-400 leading-relaxed">Download and upload. Or let us post for you on Pro plan.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ==================== INDUSTRIES ==================== -->
-  <section class="py-20 lg:py-28 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-3xl mx-auto">
-        <h2 class="text-3xl sm:text-4xl font-bold">Built for <span class="gradient-text">local businesses</span></h2>
-        <p class="mt-4 text-lg text-gray-500">We specialize in helping brick-and-mortar and service businesses get more customers through short-form video.</p>
-      </div>
-      <div class="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div class="p-5 bg-white rounded-2xl border border-gray-100 text-center card-hover">
-          <div class="text-3xl">&#127869;</div>
-          <div class="mt-2 font-semibold text-sm">Restaurants</div>
-        </div>
-        <div class="p-5 bg-white rounded-2xl border border-gray-100 text-center card-hover">
-          <div class="text-3xl">&#128135;</div>
-          <div class="mt-2 font-semibold text-sm">Salons & Spas</div>
-        </div>
-        <div class="p-5 bg-white rounded-2xl border border-gray-100 text-center card-hover">
-          <div class="text-3xl">&#129658;</div>
-          <div class="mt-2 font-semibold text-sm">Dental & Medical</div>
-        </div>
-        <div class="p-5 bg-white rounded-2xl border border-gray-100 text-center card-hover">
-          <div class="text-3xl">&#127968;</div>
-          <div class="mt-2 font-semibold text-sm">Real Estate</div>
-        </div>
-        <div class="p-5 bg-white rounded-2xl border border-gray-100 text-center card-hover">
-          <div class="text-3xl">&#128170;</div>
-          <div class="mt-2 font-semibold text-sm">Fitness & Gyms</div>
-        </div>
-        <div class="p-5 bg-white rounded-2xl border border-gray-100 text-center card-hover">
-          <div class="text-3xl">&#128722;</div>
-          <div class="mt-2 font-semibold text-sm">Retail & E-com</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== EXAMPLES ==================== -->
-  <section id="examples" class="py-20 lg:py-28">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-3xl mx-auto">
-        <div class="inline-flex items-center px-3 py-1 bg-brand-50 text-brand-600 text-sm font-semibold rounded-full mb-4">EXAMPLES</div>
-        <h2 class="text-3xl sm:text-4xl font-bold">See what we create</h2>
-        <p class="mt-4 text-lg text-gray-500">Real results for real businesses. Here's a taste of what you'll get.</p>
-      </div>
-      <div class="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Example Cards (placeholder for real videos) -->
-        <div class="group relative aspect-[9/16] bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl overflow-hidden shadow-lg card-hover cursor-pointer">
-          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition"></div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="w-14 h-14 bg-white/30 rounded-full flex items-center justify-center backdrop-blur group-hover:scale-110 transition"><svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg></div>
-          </div>
-          <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60">
-            <p class="text-white font-semibold text-sm">Italian Restaurant</p>
-            <p class="text-white/70 text-xs">TikTok &bull; 24.5K views</p>
-          </div>
-        </div>
-        <div class="group relative aspect-[9/16] bg-gradient-to-br from-pink-400 to-purple-500 rounded-2xl overflow-hidden shadow-lg card-hover cursor-pointer">
-          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition"></div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="w-14 h-14 bg-white/30 rounded-full flex items-center justify-center backdrop-blur group-hover:scale-110 transition"><svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg></div>
-          </div>
-          <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60">
-            <p class="text-white font-semibold text-sm">Hair Salon</p>
-            <p class="text-white/70 text-xs">Reels &bull; 18.2K views</p>
-          </div>
-        </div>
-        <div class="group relative aspect-[9/16] bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl overflow-hidden shadow-lg card-hover cursor-pointer">
-          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition"></div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="w-14 h-14 bg-white/30 rounded-full flex items-center justify-center backdrop-blur group-hover:scale-110 transition"><svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg></div>
-          </div>
-          <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60">
-            <p class="text-white font-semibold text-sm">Dental Practice</p>
-            <p class="text-white/70 text-xs">Shorts &bull; 9.8K views</p>
-          </div>
-        </div>
-        <div class="group relative aspect-[9/16] bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl overflow-hidden shadow-lg card-hover cursor-pointer">
-          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition"></div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="w-14 h-14 bg-white/30 rounded-full flex items-center justify-center backdrop-blur group-hover:scale-110 transition"><svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg></div>
-          </div>
-          <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60">
-            <p class="text-white font-semibold text-sm">Fitness Studio</p>
-            <p class="text-white/70 text-xs">TikTok &bull; 31.1K views</p>
-          </div>
-        </div>
-      </div>
-      <div class="mt-8 text-center">
-        <p class="text-sm text-gray-400">Videos are placeholders &mdash; replace with your real portfolio samples</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== PRICING ==================== -->
-  <section id="pricing" class="py-20 lg:py-28 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-3xl mx-auto">
-        <div class="inline-flex items-center px-3 py-1 bg-brand-50 text-brand-600 text-sm font-semibold rounded-full mb-4">PRICING</div>
-        <h2 class="text-3xl sm:text-4xl font-bold">Simple, transparent pricing</h2>
-        <p class="mt-4 text-lg text-gray-500">No hidden fees. No contracts. Cancel anytime. Seriously.</p>
+  <!-- ======================= PRICING ======================= -->
+  <section id="pricing" class="py-20 lg:py-28">
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="max-w-2xl mx-auto text-center mb-6 reveal">
+        <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">Pricing</p>
+        <h2 class="text-display-md font-display">Simple plans.<br>Honest pricing.</h2>
+        <p class="mt-5 text-[17px] text-surface-400">No hidden fees. No contracts. Pause or cancel anytime.</p>
       </div>
 
-      <!-- Annual toggle -->
-      <div class="mt-8 flex items-center justify-center gap-3">
-        <span class="text-sm font-medium text-gray-600">Monthly</span>
-        <label class="price-toggle relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" id="annual-toggle" class="sr-only">
-          <div class="slider"></div>
-        </label>
-        <span class="text-sm font-medium text-gray-600">Annual <span class="text-green-600 font-bold">(Save 20%)</span></span>
+      <!-- Toggle -->
+      <div class="flex items-center justify-center gap-3 mb-14 reveal">
+        <span class="text-[14px] font-medium text-surface-600" id="label-monthly">Monthly</span>
+        <div class="toggle-track" id="billing-toggle" onclick="toggleBilling()">
+          <div class="toggle-thumb"></div>
+        </div>
+        <span class="text-[14px] font-medium text-surface-400" id="label-annual">Annually <span class="text-accent-500 font-bold text-[13px]">save 20%</span></span>
       </div>
 
-      <div class="mt-12 grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <div class="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-[1080px] mx-auto">
         <!-- Starter -->
-        <div class="bg-white rounded-2xl border border-gray-200 p-8 card-hover">
-          <h3 class="text-lg font-bold text-gray-900">Starter</h3>
-          <p class="mt-1 text-sm text-gray-500">Perfect for getting started with video</p>
-          <div class="mt-6">
-            <span class="text-4xl font-black price-monthly">$99</span>
-            <span class="text-4xl font-black price-annual hidden">$79</span>
-            <span class="text-gray-400 text-sm">/month</span>
+        <div class="reveal rounded-3xl border border-surface-200 bg-white p-8 lg:p-10 card-premium">
+          <div class="text-[13px] font-semibold uppercase tracking-[0.1em] text-surface-400 mb-1">Starter</div>
+          <div class="flex items-baseline gap-1 mt-3">
+            <span class="text-[48px] font-display font-bold tracking-tight price-m">$149</span>
+            <span class="text-[48px] font-display font-bold tracking-tight price-a hidden">$119</span>
+            <span class="text-[15px] text-surface-400 font-medium">/mo</span>
           </div>
-          <ul class="mt-8 space-y-3">
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span><strong>8 short-form videos</strong>/month</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>1 platform (TikTok, Reels, or Shorts)</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>Captions, music & transitions</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>1 revision per video</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>5 business day delivery</span></li>
+          <p class="text-[14px] text-surface-400 mt-2">Great for getting started with video content.</p>
+          <div class="mt-8 h-px bg-surface-100"></div>
+          <ul class="mt-8 space-y-4">
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>4 videos</strong> per month</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>1 platform</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Captions, music & transitions</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>1 revision per video</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>5-day delivery</span></li>
           </ul>
-          <a href="https://buy.stripe.com/placeholder" class="mt-8 block w-full py-3 text-center bg-gray-100 text-gray-800 font-semibold rounded-full hover:bg-gray-200 transition">Get Started</a>
+          <a href="#contact" class="mt-10 block w-full py-3.5 text-center text-[14px] font-semibold rounded-full border-2 border-surface-200 text-surface-700 hover:border-surface-900 hover:text-surface-900 transition-all">Get Started</a>
         </div>
 
-        <!-- Growth (Popular) -->
-        <div class="bg-white rounded-2xl border-2 border-brand-600 p-8 card-hover relative shadow-xl shadow-brand-600/10">
-          <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-brand-600 text-white text-xs font-bold rounded-full uppercase tracking-wider">Most Popular</div>
-          <h3 class="text-lg font-bold text-gray-900">Growth</h3>
-          <p class="mt-1 text-sm text-gray-500">For businesses ready to scale their social presence</p>
-          <div class="mt-6">
-            <span class="text-4xl font-black text-brand-600 price-monthly">$249</span>
-            <span class="text-4xl font-black text-brand-600 price-annual hidden">$199</span>
-            <span class="text-gray-400 text-sm">/month</span>
+        <!-- Growth — Popular -->
+        <div class="reveal reveal-delay-1 rounded-3xl border-2 border-accent-500 bg-white p-8 lg:p-10 card-premium relative shadow-glow-sm">
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
+            <span class="px-4 py-1.5 bg-accent-500 text-white text-[11px] font-bold uppercase tracking-[0.1em] rounded-full shadow-lg">Most Popular</span>
           </div>
-          <ul class="mt-8 space-y-3">
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span><strong>16 short-form videos</strong>/month</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span><strong>2 platforms</strong> included</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>Custom hooks & scripts</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>2 revisions per video</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>Copywriting included</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>Monthly performance report</span></li>
+          <div class="text-[13px] font-semibold uppercase tracking-[0.1em] text-accent-500 mb-1">Growth</div>
+          <div class="flex items-baseline gap-1 mt-3">
+            <span class="text-[48px] font-display font-bold tracking-tight price-m">$299</span>
+            <span class="text-[48px] font-display font-bold tracking-tight price-a hidden">$239</span>
+            <span class="text-[15px] text-surface-400 font-medium">/mo</span>
+          </div>
+          <p class="text-[14px] text-surface-400 mt-2">For businesses ready to dominate social.</p>
+          <div class="mt-8 h-px bg-surface-100"></div>
+          <ul class="mt-8 space-y-4">
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>8 videos</strong> per month</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>2 platforms</strong> included</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Custom hooks & scripts</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>2 revisions per video</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Monthly performance report</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Copywriting included</span></li>
           </ul>
-          <a href="https://buy.stripe.com/placeholder" class="mt-8 block w-full py-3 text-center bg-brand-600 text-white font-semibold rounded-full hover:bg-brand-700 transition shadow-lg shadow-brand-600/25">Get Started</a>
+          <a href="#contact" class="mt-10 block w-full py-3.5 text-center text-[14px] font-semibold rounded-full btn-primary text-white">Get Started</a>
         </div>
 
         <!-- Pro -->
-        <div class="bg-white rounded-2xl border border-gray-200 p-8 card-hover">
-          <h3 class="text-lg font-bold text-gray-900">Pro</h3>
-          <p class="mt-1 text-sm text-gray-500">Full-service video marketing machine</p>
-          <div class="mt-6">
-            <span class="text-4xl font-black price-monthly">$499</span>
-            <span class="text-4xl font-black price-annual hidden">$399</span>
-            <span class="text-gray-400 text-sm">/month</span>
+        <div class="reveal reveal-delay-2 rounded-3xl border border-surface-200 bg-white p-8 lg:p-10 card-premium">
+          <div class="text-[13px] font-semibold uppercase tracking-[0.1em] text-surface-400 mb-1">Pro</div>
+          <div class="flex items-baseline gap-1 mt-3">
+            <span class="text-[48px] font-display font-bold tracking-tight price-m">$599</span>
+            <span class="text-[48px] font-display font-bold tracking-tight price-a hidden">$479</span>
+            <span class="text-[15px] text-surface-400 font-medium">/mo</span>
           </div>
-          <ul class="mt-8 space-y-3">
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span><strong>30 short-form videos</strong>/month</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span><strong>All platforms</strong> (TikTok, Reels, Shorts)</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>We post for you (optional)</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>Unlimited revisions</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>Ad creative variants</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>Dedicated account manager</span></li>
-            <li class="flex items-start gap-3 text-sm"><svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span>Priority 3-day delivery</span></li>
+          <p class="text-[14px] text-surface-400 mt-2">Full-service video marketing machine.</p>
+          <div class="mt-8 h-px bg-surface-100"></div>
+          <ul class="mt-8 space-y-4">
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>16 videos</strong> per month</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>All platforms</strong></span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>We post for you</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Unlimited revisions</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Ad creative variants</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Dedicated account manager</span></li>
+            <li class="flex gap-3 text-[14px]"><svg class="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Priority 3-day delivery</span></li>
           </ul>
-          <a href="https://buy.stripe.com/placeholder" class="mt-8 block w-full py-3 text-center bg-gray-100 text-gray-800 font-semibold rounded-full hover:bg-gray-200 transition">Get Started</a>
+          <a href="#contact" class="mt-10 block w-full py-3.5 text-center text-[14px] font-semibold rounded-full border-2 border-surface-200 text-surface-700 hover:border-surface-900 hover:text-surface-900 transition-all">Get Started</a>
         </div>
       </div>
 
-      <div class="mt-12 text-center">
-        <p class="text-sm text-gray-400">All plans include: free revisions &bull; cancel anytime &bull; no contracts &bull; satisfaction guaranteed</p>
-        <div class="mt-4 flex items-center justify-center gap-6">
-          <img src="https://cdn.brandfetch.io/stripe.com/w/32/h/32" alt="Stripe" class="h-6 opacity-40">
-          <span class="text-xs text-gray-400">Secure payments via Stripe</span>
-        </div>
-      </div>
+      <p class="text-center text-[13px] text-surface-400 mt-10">All plans include: free revisions &bull; cancel anytime &bull; no contracts &bull; 14-day money-back guarantee</p>
     </div>
   </section>
 
-  <!-- ==================== COMPARISON ==================== -->
-  <section class="py-20 lg:py-28">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-3xl mx-auto">
-        <h2 class="text-3xl sm:text-4xl font-bold">Why VidSpark vs. the alternatives?</h2>
+  <!-- ======================= COMPARISON ======================= -->
+  <section class="py-20 lg:py-28 bg-surface-50 border-y border-surface-100">
+    <div class="max-w-[1080px] mx-auto px-6 lg:px-8">
+      <div class="max-w-2xl mx-auto text-center mb-14 reveal">
+        <h2 class="text-display-sm font-display">VidSpark vs. the alternatives</h2>
       </div>
-      <div class="mt-12 overflow-x-auto">
-        <table class="w-full max-w-4xl mx-auto text-sm">
+      <div class="overflow-x-auto reveal">
+        <table class="w-full text-[14px]">
           <thead>
-            <tr class="border-b border-gray-200">
-              <th class="py-4 px-4 text-left font-semibold text-gray-500"></th>
-              <th class="py-4 px-4 text-center font-bold text-brand-600 bg-brand-50 rounded-t-xl">VidSpark</th>
-              <th class="py-4 px-4 text-center font-semibold text-gray-500">Traditional Agency</th>
-              <th class="py-4 px-4 text-center font-semibold text-gray-500">Freelancers</th>
-              <th class="py-4 px-4 text-center font-semibold text-gray-500">DIY</th>
+            <tr>
+              <th class="py-4 px-5 text-left text-[13px] font-medium text-surface-400 uppercase tracking-wider"></th>
+              <th class="py-4 px-5 text-center rounded-t-2xl bg-accent-500/5 border-x border-t border-accent-500/10">
+                <span class="font-bold text-accent-600">VidSpark</span>
+              </th>
+              <th class="py-4 px-5 text-center text-surface-500 font-medium">Agency</th>
+              <th class="py-4 px-5 text-center text-surface-500 font-medium">Freelancer</th>
+              <th class="py-4 px-5 text-center text-surface-500 font-medium">DIY</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr>
-              <td class="py-3 px-4 font-medium">Monthly Cost</td>
-              <td class="py-3 px-4 text-center bg-brand-50 font-bold text-brand-600">$99-499</td>
-              <td class="py-3 px-4 text-center text-gray-500">$2,000-10,000</td>
-              <td class="py-3 px-4 text-center text-gray-500">$500-3,000</td>
-              <td class="py-3 px-4 text-center text-gray-500">$0 (+ your time)</td>
+          <tbody>
+            <tr class="border-t border-surface-200">
+              <td class="py-4 px-5 font-medium text-surface-700">Monthly cost</td>
+              <td class="py-4 px-5 text-center bg-accent-500/5 border-x border-accent-500/10 font-bold text-accent-600">$149–599</td>
+              <td class="py-4 px-5 text-center text-surface-500">$3,000–10,000</td>
+              <td class="py-4 px-5 text-center text-surface-500">$500–3,000</td>
+              <td class="py-4 px-5 text-center text-surface-500">$0 + your time</td>
             </tr>
-            <tr>
-              <td class="py-3 px-4 font-medium">Quality</td>
-              <td class="py-3 px-4 text-center bg-brand-50"><span class="text-green-600 font-bold">Professional</span></td>
-              <td class="py-3 px-4 text-center"><span class="text-green-600">Professional</span></td>
-              <td class="py-3 px-4 text-center"><span class="text-yellow-600">Hit or miss</span></td>
-              <td class="py-3 px-4 text-center"><span class="text-red-500">Amateur</span></td>
+            <tr class="border-t border-surface-200">
+              <td class="py-4 px-5 font-medium text-surface-700">Quality</td>
+              <td class="py-4 px-5 text-center bg-accent-500/5 border-x border-accent-500/10"><span class="font-semibold text-green-600">Professional</span></td>
+              <td class="py-4 px-5 text-center"><span class="text-green-600">Professional</span></td>
+              <td class="py-4 px-5 text-center"><span class="text-yellow-600">Hit or miss</span></td>
+              <td class="py-4 px-5 text-center"><span class="text-red-500">Amateur</span></td>
             </tr>
-            <tr>
-              <td class="py-3 px-4 font-medium">Turnaround</td>
-              <td class="py-3 px-4 text-center bg-brand-50 font-bold text-brand-600">5 days</td>
-              <td class="py-3 px-4 text-center text-gray-500">2-4 weeks</td>
-              <td class="py-3 px-4 text-center text-gray-500">1-2 weeks</td>
-              <td class="py-3 px-4 text-center text-gray-500">When you find time</td>
+            <tr class="border-t border-surface-200">
+              <td class="py-4 px-5 font-medium text-surface-700">Turnaround</td>
+              <td class="py-4 px-5 text-center bg-accent-500/5 border-x border-accent-500/10 font-bold text-accent-600">5 days</td>
+              <td class="py-4 px-5 text-center text-surface-500">2–4 weeks</td>
+              <td class="py-4 px-5 text-center text-surface-500">1–2 weeks</td>
+              <td class="py-4 px-5 text-center text-surface-500">Whenever</td>
             </tr>
-            <tr>
-              <td class="py-3 px-4 font-medium">Consistency</td>
-              <td class="py-3 px-4 text-center bg-brand-50"><span class="text-green-600 font-bold">Weekly delivery</span></td>
-              <td class="py-3 px-4 text-center"><span class="text-green-600">Yes</span></td>
-              <td class="py-3 px-4 text-center"><span class="text-red-500">Unreliable</span></td>
-              <td class="py-3 px-4 text-center"><span class="text-red-500">Sporadic</span></td>
+            <tr class="border-t border-surface-200">
+              <td class="py-4 px-5 font-medium text-surface-700">Consistency</td>
+              <td class="py-4 px-5 text-center bg-accent-500/5 border-x border-accent-500/10"><span class="font-semibold text-green-600">Weekly</span></td>
+              <td class="py-4 px-5 text-center text-green-600">Yes</td>
+              <td class="py-4 px-5 text-center text-red-500">Unreliable</td>
+              <td class="py-4 px-5 text-center text-red-500">Sporadic</td>
             </tr>
-            <tr>
-              <td class="py-3 px-4 font-medium">Contract</td>
-              <td class="py-3 px-4 text-center bg-brand-50 font-bold text-brand-600">None</td>
-              <td class="py-3 px-4 text-center text-gray-500">6-12 months</td>
-              <td class="py-3 px-4 text-center text-gray-500">Per project</td>
-              <td class="py-3 px-4 text-center text-gray-500">N/A</td>
+            <tr class="border-t border-surface-200">
+              <td class="py-4 px-5 font-medium text-surface-700">Contract</td>
+              <td class="py-4 px-5 text-center bg-accent-500/5 border-x border-b border-accent-500/10 rounded-b-2xl font-bold text-accent-600">None</td>
+              <td class="py-4 px-5 text-center text-surface-500">6–12 mo</td>
+              <td class="py-4 px-5 text-center text-surface-500">Per project</td>
+              <td class="py-4 px-5 text-center text-surface-400">—</td>
             </tr>
           </tbody>
         </table>
@@ -541,215 +892,438 @@
     </div>
   </section>
 
-  <!-- ==================== TESTIMONIALS ==================== -->
-  <section class="py-20 lg:py-28 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-3xl mx-auto">
-        <h2 class="text-3xl sm:text-4xl font-bold">Loved by small business owners</h2>
+  <!-- ======================= TESTIMONIALS ======================= -->
+  <section class="py-20 lg:py-28">
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="max-w-2xl mx-auto text-center mb-14 reveal">
+        <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">Testimonials</p>
+        <h2 class="text-display-sm font-display">Loved by business owners</h2>
       </div>
-      <div class="mt-12 grid md:grid-cols-3 gap-8">
-        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-          <div class="flex gap-1 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p class="mt-4 text-gray-600 leading-relaxed">"We went from posting once a month to 4x a week. Our Instagram followers doubled in 3 months. VidSpark pays for itself 10x over."</p>
+      <div class="grid md:grid-cols-3 gap-6 lg:gap-8">
+        <div class="reveal p-8 rounded-2xl border border-surface-100 bg-white card-premium">
+          <div class="flex gap-0.5 text-accent-500 text-[18px]">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="mt-5 text-[15px] text-surface-600 leading-relaxed">"We went from posting once a month to 4x a week. Our Instagram followers doubled in 3 months. VidSpark pays for itself 10x over."</p>
           <div class="mt-6 flex items-center gap-3">
-            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm">MR</div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-[13px] font-bold">MR</div>
             <div>
-              <div class="font-semibold text-sm">Maria R.</div>
-              <div class="text-xs text-gray-400">Owner, Bella Cucina Italian</div>
+              <div class="text-[14px] font-semibold">Maria R.</div>
+              <div class="text-[12px] text-surface-400">Owner, Bella Cucina Italian</div>
             </div>
           </div>
         </div>
-        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-          <div class="flex gap-1 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p class="mt-4 text-gray-600 leading-relaxed">"I used to spend $3,000/month on a local video guy. VidSpark gives me 3x the content for 1/10th the price. The quality is incredible."</p>
+        <div class="reveal reveal-delay-1 p-8 rounded-2xl border border-surface-100 bg-white card-premium">
+          <div class="flex gap-0.5 text-accent-500 text-[18px]">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="mt-5 text-[15px] text-surface-600 leading-relaxed">"I used to spend $3K/month on a local video guy. VidSpark gives me 3x the content at a fraction of the price. Quality is incredible."</p>
           <div class="mt-6 flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">JT</div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-[13px] font-bold">JT</div>
             <div>
-              <div class="font-semibold text-sm">James T.</div>
-              <div class="text-xs text-gray-400">Owner, CrossFit Phoenix</div>
+              <div class="text-[14px] font-semibold">James T.</div>
+              <div class="text-[12px] text-surface-400">Owner, CrossFit Phoenix</div>
             </div>
           </div>
         </div>
-        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-          <div class="flex gap-1 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p class="mt-4 text-gray-600 leading-relaxed">"Our TikTok went from 200 followers to 15K in 4 months. We now get 5-10 new patient inquiries every week directly from our videos."</p>
+        <div class="reveal reveal-delay-2 p-8 rounded-2xl border border-surface-100 bg-white card-premium">
+          <div class="flex gap-0.5 text-accent-500 text-[18px]">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="mt-5 text-[15px] text-surface-600 leading-relaxed">"Our TikTok went from 200 to 15K followers in 4 months. We get 5–10 new patient inquiries weekly directly from our videos."</p>
           <div class="mt-6 flex items-center gap-3">
-            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold text-sm">DS</div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-[13px] font-bold">SK</div>
             <div>
-              <div class="font-semibold text-sm">Dr. Sarah K.</div>
-              <div class="text-xs text-gray-400">Bright Smile Dentistry</div>
+              <div class="text-[14px] font-semibold">Dr. Sarah K.</div>
+              <div class="text-[12px] text-surface-400">Bright Smile Dentistry</div>
             </div>
           </div>
         </div>
       </div>
-      <p class="mt-6 text-center text-xs text-gray-400">Testimonials are illustrative &mdash; replace with real customer reviews</p>
+      <p class="mt-8 text-center text-[13px] text-surface-400">Ready to be our next success story? <a href="#pricing" class="text-accent-500 font-semibold hover:underline">Get started today</a></p>
     </div>
   </section>
 
-  <!-- ==================== FAQ ==================== -->
+  <div class="section-divider max-w-[1280px] mx-auto"></div>
+
+  <!-- ======================= FAQ ======================= -->
   <section id="faq" class="py-20 lg:py-28">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center">
-        <h2 class="text-3xl sm:text-4xl font-bold">Frequently Asked Questions</h2>
+    <div class="max-w-[720px] mx-auto px-6 lg:px-8">
+      <div class="text-center mb-14 reveal">
+        <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">FAQ</p>
+        <h2 class="text-display-sm font-display">Common questions</h2>
       </div>
-      <div class="mt-12 space-y-4">
-        <details class="group bg-gray-50 rounded-2xl p-6 cursor-pointer">
-          <summary class="flex items-center justify-between font-semibold text-gray-900">
-            What kind of videos do you create?
-            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      <div class="space-y-3 reveal">
+        <details class="group rounded-2xl border border-surface-100 bg-white overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-surface-50 transition">
+            <span class="text-[15px] font-semibold pr-4">What kind of videos do you create?</span>
+            <span class="faq-icon w-6 h-6 rounded-full bg-surface-100 flex items-center justify-center shrink-0 text-surface-500 transition-transform duration-300 text-[18px]">+</span>
           </summary>
-          <p class="mt-4 text-gray-500 text-sm leading-relaxed">We create short-form vertical videos (15-60 seconds) optimized for TikTok, Instagram Reels, and YouTube Shorts. This includes product showcases, behind-the-scenes content, customer testimonials, before/after transformations, educational tips, and trending format videos.</p>
+          <div class="px-6 pb-6 text-[14px] text-surface-500 leading-relaxed">Short-form vertical videos (15–60 seconds) optimized for TikTok, Instagram Reels, and YouTube Shorts. Product showcases, behind-the-scenes, before/after transformations, tips, and trending formats.</div>
         </details>
-        <details class="group bg-gray-50 rounded-2xl p-6 cursor-pointer">
-          <summary class="flex items-center justify-between font-semibold text-gray-900">
-            Do I need to film the raw footage myself?
-            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <details class="group rounded-2xl border border-surface-100 bg-white overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-surface-50 transition">
+            <span class="text-[15px] font-semibold pr-4">Do I need to film the raw footage?</span>
+            <span class="faq-icon w-6 h-6 rounded-full bg-surface-100 flex items-center justify-center shrink-0 text-surface-500 transition-transform duration-300 text-[18px]">+</span>
           </summary>
-          <p class="mt-4 text-gray-500 text-sm leading-relaxed">It depends! We can work with footage you film on your phone (we'll send you a simple shot list), or we can use premium stock footage and AI-enhanced visuals. Most clients send us quick phone clips — no fancy equipment needed.</p>
+          <div class="px-6 pb-6 text-[14px] text-surface-500 leading-relaxed">We can work with quick phone clips you film (we send a simple shot list), or we use premium stock footage and AI-enhanced visuals. No fancy equipment needed.</div>
         </details>
-        <details class="group bg-gray-50 rounded-2xl p-6 cursor-pointer">
-          <summary class="flex items-center justify-between font-semibold text-gray-900">
-            How fast do I get my videos?
-            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <details class="group rounded-2xl border border-surface-100 bg-white overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-surface-50 transition">
+            <span class="text-[15px] font-semibold pr-4">How fast do I get my videos?</span>
+            <span class="faq-icon w-6 h-6 rounded-full bg-surface-100 flex items-center justify-center shrink-0 text-surface-500 transition-transform duration-300 text-[18px]">+</span>
           </summary>
-          <p class="mt-4 text-gray-500 text-sm leading-relaxed">Standard delivery is 5 business days from when we receive your footage. Pro plan clients get priority 3-day delivery. First batch may take an extra day or two as we learn your brand style.</p>
+          <div class="px-6 pb-6 text-[14px] text-surface-500 leading-relaxed">Standard delivery is 5 business days. Pro plan clients get priority 3-day delivery. First batch may take an extra day as we learn your brand.</div>
         </details>
-        <details class="group bg-gray-50 rounded-2xl p-6 cursor-pointer">
-          <summary class="flex items-center justify-between font-semibold text-gray-900">
-            Can I cancel anytime?
-            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <details class="group rounded-2xl border border-surface-100 bg-white overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-surface-50 transition">
+            <span class="text-[15px] font-semibold pr-4">Can I cancel anytime?</span>
+            <span class="faq-icon w-6 h-6 rounded-full bg-surface-100 flex items-center justify-center shrink-0 text-surface-500 transition-transform duration-300 text-[18px]">+</span>
           </summary>
-          <p class="mt-4 text-gray-500 text-sm leading-relaxed">Yes, absolutely. No contracts, no commitments. You can cancel, pause, or change your plan at any time. We believe our work speaks for itself — you stay because you want to, not because you have to.</p>
+          <div class="px-6 pb-6 text-[14px] text-surface-500 leading-relaxed">Yes. No contracts, no commitments. Cancel, pause, or change your plan at any time. You stay because you want to, not because you have to.</div>
         </details>
-        <details class="group bg-gray-50 rounded-2xl p-6 cursor-pointer">
-          <summary class="flex items-center justify-between font-semibold text-gray-900">
-            What if I don't like the videos?
-            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <details class="group rounded-2xl border border-surface-100 bg-white overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-surface-50 transition">
+            <span class="text-[15px] font-semibold pr-4">What if I don't like the videos?</span>
+            <span class="faq-icon w-6 h-6 rounded-full bg-surface-100 flex items-center justify-center shrink-0 text-surface-500 transition-transform duration-300 text-[18px]">+</span>
           </summary>
-          <p class="mt-4 text-gray-500 text-sm leading-relaxed">Every plan includes revisions. If you're not happy with a video, we'll rework it until you are. If you're not satisfied within the first 14 days, we'll refund your money — no questions asked.</p>
+          <div class="px-6 pb-6 text-[14px] text-surface-500 leading-relaxed">Every plan includes revisions. If you're not satisfied within the first 14 days, we'll refund your money — no questions asked.</div>
         </details>
-        <details class="group bg-gray-50 rounded-2xl p-6 cursor-pointer">
-          <summary class="flex items-center justify-between font-semibold text-gray-900">
-            Can you post the videos for me?
-            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <details class="group rounded-2xl border border-surface-100 bg-white overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-surface-50 transition">
+            <span class="text-[15px] font-semibold pr-4">Can you post the videos for me?</span>
+            <span class="faq-icon w-6 h-6 rounded-full bg-surface-100 flex items-center justify-center shrink-0 text-surface-500 transition-transform duration-300 text-[18px]">+</span>
           </summary>
-          <p class="mt-4 text-gray-500 text-sm leading-relaxed">Yes! On our Pro plan, we can handle posting to your social media accounts on an optimized schedule. For Starter and Growth plans, we deliver the final videos and captions ready-to-post — just upload and go.</p>
+          <div class="px-6 pb-6 text-[14px] text-surface-500 leading-relaxed">Yes! On our Pro plan, we handle posting on an optimized schedule. Starter and Growth plans get ready-to-post videos with captions — just upload.</div>
         </details>
-        <details class="group bg-gray-50 rounded-2xl p-6 cursor-pointer">
-          <summary class="flex items-center justify-between font-semibold text-gray-900">
-            Who are the people making my videos?
-            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <details class="group rounded-2xl border border-surface-100 bg-white overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-surface-50 transition">
+            <span class="text-[15px] font-semibold pr-4">Who makes my videos?</span>
+            <span class="faq-icon w-6 h-6 rounded-full bg-surface-100 flex items-center justify-center shrink-0 text-surface-500 transition-transform duration-300 text-[18px]">+</span>
           </summary>
-          <p class="mt-4 text-gray-500 text-sm leading-relaxed">Our creative team consists of professional video editors, copywriters, and social media strategists. Every team member is vetted and trained on the latest short-form video trends and platform algorithms. We accept less than 1% of applicants.</p>
+          <div class="px-6 pb-6 text-[14px] text-surface-500 leading-relaxed">Professional video editors, copywriters, and social media strategists. Every member is vetted and trained on the latest short-form trends and platform algorithms. We accept less than 1% of applicants.</div>
         </details>
       </div>
     </div>
   </section>
 
-  <!-- ==================== FINAL CTA ==================== -->
-  <section class="py-20 lg:py-28 bg-dark-900 text-white relative overflow-hidden">
-    <div class="blob w-96 h-96 bg-brand-600 top-0 left-1/4 opacity-10"></div>
-    <div class="blob w-80 h-80 bg-purple-600 bottom-0 right-1/4 opacity-10"></div>
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black">Ready to go viral?</h2>
-      <p class="mt-4 text-lg text-gray-400">Join 500+ businesses growing with short-form video. Start in minutes, cancel anytime.</p>
-      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="#pricing" class="w-full sm:w-auto px-8 py-4 bg-brand-600 text-white font-bold rounded-full text-lg hover:bg-brand-700 transition shadow-xl shadow-brand-600/30">
-          Start for $99/mo &rarr;
-        </a>
-        <a href="mailto:hello@vidspark.com" class="w-full sm:w-auto px-8 py-4 border border-white/20 text-white font-semibold rounded-full text-lg hover:bg-white/10 transition">
-          Talk to us
-        </a>
+  <!-- ======================= CONTACT FORM ======================= -->
+  <section id="contact" class="py-20 lg:py-28">
+    <div class="max-w-[720px] mx-auto px-6 lg:px-8">
+      <div class="text-center mb-12 reveal">
+        <p class="text-[13px] font-semibold uppercase tracking-[0.15em] text-accent-500 mb-4">Get in Touch</p>
+        <h2 class="text-display-sm font-display">Let's create something amazing</h2>
+        <p class="mt-4 text-[16px] text-surface-400">Tell us about your business. We'll send you a free sample video within 48 hours.</p>
       </div>
-      <p class="mt-6 text-sm text-gray-500">No credit card required to schedule a demo</p>
-    </div>
-  </section>
-
-  <!-- ==================== FOOTER ==================== -->
-  <footer class="py-12 bg-dark-800 text-gray-400 border-t border-white/5">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid md:grid-cols-4 gap-8">
+      <form class="reveal space-y-5" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Sent! We\'ll be in touch.'; this.querySelector('button').disabled=true;">
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-[13px] font-medium text-surface-600 mb-1.5">Your Name</label>
+            <input type="text" required class="w-full px-4 py-3 rounded-xl border border-surface-200 text-[14px] focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition" placeholder="John Smith">
+          </div>
+          <div>
+            <label class="block text-[13px] font-medium text-surface-600 mb-1.5">Business Name</label>
+            <input type="text" required class="w-full px-4 py-3 rounded-xl border border-surface-200 text-[14px] focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition" placeholder="Bella Cucina">
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-[13px] font-medium text-surface-600 mb-1.5">Email</label>
+            <input type="email" required class="w-full px-4 py-3 rounded-xl border border-surface-200 text-[14px] focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition" placeholder="you@business.com">
+          </div>
+          <div>
+            <label class="block text-[13px] font-medium text-surface-600 mb-1.5">Industry</label>
+            <select required class="w-full px-4 py-3 rounded-xl border border-surface-200 text-[14px] text-surface-600 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition bg-white">
+              <option value="" disabled selected>Select your industry</option>
+              <option>Restaurant / Food</option>
+              <option>Salon / Spa / Beauty</option>
+              <option>Dental / Medical</option>
+              <option>Fitness / Gym</option>
+              <option>Real Estate</option>
+              <option>Retail / E-commerce</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
         <div>
-          <a href="#" class="flex items-center gap-2">
-            <div class="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg></div>
-            <span class="text-lg font-bold text-white">Vid<span class="text-brand-400">Spark</span></span>
+          <label class="block text-[13px] font-medium text-surface-600 mb-1.5">Tell us about your business</label>
+          <textarea rows="3" class="w-full px-4 py-3 rounded-xl border border-surface-200 text-[14px] focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition resize-none" placeholder="What platforms are you on? What content do you need?"></textarea>
+        </div>
+        <button type="submit" class="w-full py-4 btn-primary text-white text-[15px] font-semibold rounded-full flex items-center justify-center gap-2">
+          Get My Free Sample Video
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </button>
+        <p class="text-center text-[12px] text-surface-400">No commitment. We'll create a free sample video for your business.</p>
+      </form>
+    </div>
+  </section>
+
+  <div class="section-divider max-w-[1280px] mx-auto"></div>
+
+  <!-- ======================= FINAL CTA ======================= -->
+  <section class="py-24 lg:py-32 bg-surface-950 text-white relative overflow-hidden">
+    <div class="absolute inset-0 hero-grid opacity-50"></div>
+    <div class="absolute inset-0 hero-glow"></div>
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-500/30 to-transparent"></div>
+
+    <div class="relative max-w-3xl mx-auto px-6 lg:px-8 text-center">
+      <h2 class="text-display-lg font-display reveal">Ready to stand out?</h2>
+      <p class="mt-5 text-[18px] text-white/40 reveal">Your competitors are already using short-form video. Don't get left behind.</p>
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 reveal">
+        <a href="#pricing" class="w-full sm:w-auto btn-primary px-10 py-4 text-white text-[16px] font-semibold rounded-full flex items-center justify-center gap-2">
+          See Plans & Pricing
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+        <a href="#contact" class="w-full sm:w-auto px-10 py-4 text-white/60 text-[16px] font-semibold rounded-full border border-white/10 hover:border-white/25 hover:text-white/80 transition flex items-center justify-center gap-2">
+          Get a Free Sample
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= FOOTER ======================= -->
+  <footer class="py-16 bg-surface-950 text-surface-400 border-t border-white/5">
+    <div class="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-10 lg:gap-16">
+        <div class="md:col-span-1">
+          <a href="#" class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
+              <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><polygon points="8,4 16,10 8,16"/></svg>
+            </div>
+            <span class="text-[18px] font-display font-bold text-white">Vid<span class="text-accent-400">Spark</span></span>
           </a>
-          <p class="mt-3 text-sm">Professional short-form video content for US small businesses.</p>
+          <p class="mt-4 text-[13px] leading-relaxed text-surface-500">Professional short-form video for US small businesses. Made with care.</p>
         </div>
         <div>
-          <h4 class="font-semibold text-white text-sm">Services</h4>
-          <ul class="mt-3 space-y-2 text-sm">
-            <li><a href="#" class="hover:text-white transition">TikTok Videos</a></li>
-            <li><a href="#" class="hover:text-white transition">Instagram Reels</a></li>
-            <li><a href="#" class="hover:text-white transition">YouTube Shorts</a></li>
-            <li><a href="#" class="hover:text-white transition">Ad Creatives</a></li>
+          <h4 class="text-[12px] font-semibold uppercase tracking-[0.15em] text-surface-500 mb-4">Services</h4>
+          <ul class="space-y-2.5 text-[14px]">
+            <li><a href="#work" class="hover:text-white transition">TikTok Videos</a></li>
+            <li><a href="#work" class="hover:text-white transition">Instagram Reels</a></li>
+            <li><a href="#work" class="hover:text-white transition">YouTube Shorts</a></li>
+            <li><a href="#contact" class="hover:text-white transition">Ad Creatives</a></li>
           </ul>
         </div>
         <div>
-          <h4 class="font-semibold text-white text-sm">Industries</h4>
-          <ul class="mt-3 space-y-2 text-sm">
-            <li><a href="#" class="hover:text-white transition">Restaurants</a></li>
-            <li><a href="#" class="hover:text-white transition">Salons & Spas</a></li>
-            <li><a href="#" class="hover:text-white transition">Dental & Medical</a></li>
-            <li><a href="#" class="hover:text-white transition">Fitness & Gyms</a></li>
+          <h4 class="text-[12px] font-semibold uppercase tracking-[0.15em] text-surface-500 mb-4">Industries</h4>
+          <ul class="space-y-2.5 text-[14px]">
+            <li><a href="#work" class="hover:text-white transition">Restaurants</a></li>
+            <li><a href="#work" class="hover:text-white transition">Salons & Spas</a></li>
+            <li><a href="#work" class="hover:text-white transition">Dental & Medical</a></li>
+            <li><a href="#work" class="hover:text-white transition">Fitness & Gyms</a></li>
           </ul>
         </div>
         <div>
-          <h4 class="font-semibold text-white text-sm">Company</h4>
-          <ul class="mt-3 space-y-2 text-sm">
-            <li><a href="#" class="hover:text-white transition">About</a></li>
+          <h4 class="text-[12px] font-semibold uppercase tracking-[0.15em] text-surface-500 mb-4">Company</h4>
+          <ul class="space-y-2.5 text-[14px]">
             <li><a href="#pricing" class="hover:text-white transition">Pricing</a></li>
-            <li><a href="#examples" class="hover:text-white transition">Examples</a></li>
+            <li><a href="#work" class="hover:text-white transition">Our Work</a></li>
+            <li><a href="#faq" class="hover:text-white transition">FAQ</a></li>
             <li><a href="mailto:hello@vidspark.com" class="hover:text-white transition">Contact</a></li>
           </ul>
         </div>
       </div>
-      <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p class="text-xs">&copy; 2026 VidSpark. All rights reserved.</p>
-        <div class="flex items-center gap-4 text-xs">
-          <a href="#" class="hover:text-white transition">Privacy Policy</a>
-          <a href="#" class="hover:text-white transition">Terms of Service</a>
+      <div class="mt-14 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-[12px] text-surface-600">&copy; 2026 VidSpark. All rights reserved.</p>
+        <div class="flex gap-5 text-[12px] text-surface-600">
+          <a href="#" class="hover:text-white transition">Privacy</a>
+          <a href="#" class="hover:text-white transition">Terms</a>
         </div>
       </div>
     </div>
   </footer>
 
-  <!-- ==================== SCRIPTS ==================== -->
+  <!-- ======================= JS ======================= -->
   <script>
-    // Mobile menu toggle
-    document.getElementById('mobile-toggle').addEventListener('click', () => {
-      document.getElementById('mobile-menu').classList.toggle('hidden');
+    // ===== Mandelbrot Fractal Background =====
+    (function() {
+      const canvas = document.getElementById('fractal-bg');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let w, h, imgData;
+      let time = 0;
+      let animFrame;
+
+      function resize() {
+        // Render at lower resolution for performance
+        const scale = window.innerWidth < 768 ? 0.15 : 0.25;
+        w = Math.floor(window.innerWidth * scale);
+        h = Math.floor(window.innerHeight * scale);
+        canvas.width = w;
+        canvas.height = h;
+        imgData = ctx.createImageData(w, h);
+      }
+
+      function render() {
+        time += 0.003;
+        // Slowly zoom into a beautiful region of the Mandelbrot set
+        const zoom = 2.0 + Math.sin(time * 0.2) * 0.5;
+        const cx = -0.745 + Math.sin(time * 0.15) * 0.015;
+        const cy = 0.186 + Math.cos(time * 0.12) * 0.015;
+        const maxIter = 50;
+        const data = imgData.data;
+
+        // Fade in the canvas
+        if (parseFloat(canvas.style.opacity) < 0.35) {
+          canvas.style.opacity = Math.min(0.35, parseFloat(canvas.style.opacity || 0) + 0.01).toString();
+        }
+
+        for (let py = 0; py < h; py++) {
+          for (let px = 0; px < w; px++) {
+            const x0 = (px - w / 2) / (w * zoom) * 3.5 + cx;
+            const y0 = (py - h / 2) / (h * zoom) * 2.5 + cy;
+            let x = 0, y = 0, iter = 0;
+            while (x * x + y * y <= 4 && iter < maxIter) {
+              const t = x * x - y * y + x0;
+              y = 2 * x * y + y0;
+              x = t;
+              iter++;
+            }
+            const idx = (py * w + px) * 4;
+            if (iter === maxIter) {
+              data[idx] = data[idx + 1] = data[idx + 2] = 0;
+            } else {
+              // Smooth coloring with log
+              const mu = iter - Math.log2(Math.log2(x * x + y * y));
+              const t2 = mu / maxIter;
+              const phase = t2 * 3 + time * 0.5;
+              // Multi-tone warm palette: deep amber → orange → gold
+              data[idx]     = Math.floor(255 * Math.pow(t2, 0.8));                          // R
+              data[idx + 1] = Math.floor(120 * Math.pow(t2, 1.2) * (0.8 + 0.2 * Math.sin(phase)));  // G
+              data[idx + 2] = Math.floor(30 * t2 + 20 * Math.sin(phase * 2));                // B
+            }
+            data[idx + 3] = 255;
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+        animFrame = requestAnimationFrame(render);
+      }
+
+      // Only run when hero is visible
+      const heroObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            resize();
+            if (!animFrame) render();
+          } else {
+            if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+          }
+        });
+      }, { threshold: 0.01 });
+      heroObserver.observe(canvas.closest('section'));
+
+      window.addEventListener('resize', () => {
+        if (animFrame) resize();
+      });
+    })();
+
+    // ===== Mobile nav =====
+    document.getElementById('menu-btn').addEventListener('click', () => {
+      document.getElementById('mobile-nav').classList.toggle('hidden');
+    });
+    document.querySelectorAll('#mobile-nav a').forEach(a => {
+      a.addEventListener('click', () => document.getElementById('mobile-nav').classList.add('hidden'));
     });
 
-    // Close mobile menu on link click
-    document.querySelectorAll('#mobile-menu a').forEach(link => {
-      link.addEventListener('click', () => document.getElementById('mobile-menu').classList.add('hidden'));
-    });
+    // ===== Navbar background on scroll =====
+    const nav = document.getElementById('nav');
+    let navScrolled = false;
+    function updateNav() {
+      const shouldScroll = window.scrollY > 40;
+      if (shouldScroll === navScrolled) return;
+      navScrolled = shouldScroll;
 
-    // Annual/monthly pricing toggle
-    document.getElementById('annual-toggle').addEventListener('change', function() {
-      document.querySelectorAll('.price-monthly').forEach(el => el.classList.toggle('hidden', this.checked));
-      document.querySelectorAll('.price-annual').forEach(el => el.classList.toggle('hidden', !this.checked));
-    });
+      if (shouldScroll) {
+        nav.classList.add('bg-white/90', 'backdrop-blur-xl', 'shadow-sm', 'border-b', 'border-surface-100');
+        // Switch to dark text on light background
+        nav.querySelectorAll('.nav-link').forEach(el => {
+          el.classList.remove('text-white/60', 'hover:text-white');
+          el.classList.add('text-surface-500', 'hover:text-surface-900');
+        });
+        nav.querySelector('.font-display').classList.add('text-surface-900');
+      } else {
+        nav.classList.remove('bg-white/90', 'backdrop-blur-xl', 'shadow-sm', 'border-b', 'border-surface-100');
+        // Switch to light text on dark background
+        nav.querySelectorAll('.nav-link').forEach(el => {
+          el.classList.remove('text-surface-500', 'hover:text-surface-900');
+          el.classList.add('text-white/60', 'hover:text-white');
+        });
+        nav.querySelector('.font-display').classList.remove('text-surface-900');
+      }
+    }
+    window.addEventListener('scroll', updateNav, { passive: true });
+    updateNav();
 
-    // Scroll fade-in animation
-    const observer = new IntersectionObserver((entries) => {
+    // ===== Billing toggle =====
+    let isAnnual = false;
+    function toggleBilling() {
+      isAnnual = !isAnnual;
+      document.getElementById('billing-toggle').classList.toggle('active', isAnnual);
+      document.getElementById('label-monthly').classList.toggle('text-surface-600', !isAnnual);
+      document.getElementById('label-monthly').classList.toggle('text-surface-400', isAnnual);
+      document.getElementById('label-annual').classList.toggle('text-surface-400', !isAnnual);
+      document.getElementById('label-annual').classList.toggle('text-surface-600', isAnnual);
+      document.querySelectorAll('.price-m').forEach(el => el.classList.toggle('hidden', isAnnual));
+      document.querySelectorAll('.price-a').forEach(el => el.classList.toggle('hidden', !isAnnual));
+    }
+
+    // ===== Scroll reveal =====
+    const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
         }
       });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-    // Navbar shadow on scroll
-    window.addEventListener('scroll', () => {
-      const nav = document.getElementById('navbar');
-      if (window.scrollY > 10) {
-        nav.classList.add('shadow-sm');
-      } else {
-        nav.classList.remove('shadow-sm');
-      }
+    // ===== Video hover play/pause =====
+    document.querySelectorAll('#work video').forEach(video => {
+      const card = video.closest('.card-premium');
+      card.addEventListener('mouseenter', () => { video.play().catch(()=>{}); });
+      card.addEventListener('mouseleave', () => { video.pause(); video.currentTime = 0; });
+      // Auto-play when scrolled into view on mobile
+      const vObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting && window.innerWidth < 768) { video.play().catch(()=>{}); }
+          else if (!e.isIntersecting) { video.pause(); }
+        });
+      }, { threshold: 0.6 });
+      vObs.observe(card);
+    });
+
+    // ===== Smooth scroll for anchor links =====
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href');
+        if (href === '#') return;
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // ===== Animated stat counters =====
+    document.querySelectorAll('.stat-number').forEach(el => {
+      const text = el.textContent;
+      const match = text.match(/^([\d.]+)/);
+      if (!match) return;
+      const target = parseFloat(match[1]);
+      const suffix = text.replace(match[1], '');
+      const isFloat = text.includes('.');
+      let started = false;
+
+      const obs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !started) {
+          started = true;
+          const duration = 1200;
+          const start = performance.now();
+          function tick(now) {
+            const t = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - t, 3);
+            const val = isFloat ? (target * ease).toFixed(1) : Math.floor(target * ease);
+            el.innerHTML = val + suffix;
+            if (t < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        }
+      }, { threshold: 0.5 });
+      obs.observe(el);
     });
   </script>
 </body>
