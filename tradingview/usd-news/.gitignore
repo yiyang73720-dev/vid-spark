@@ -1,0 +1,3 @@
+.ff_cache.json
+__pycache__/
+*.tmp
