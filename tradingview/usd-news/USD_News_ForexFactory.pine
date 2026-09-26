@@ -247,7 +247,10 @@ var array<int>       clLevel  = array.new<int>()
 var array<int>       clFirst  = array.new<int>()   // index into `events`
 var array<float>     clY      = array.new<float>() // bar high at release, for the label
 var map<string, string> ZH    = map.new<string, string>()
-var int              embeddedCount = 0
+var int              embeddedCount = 0     // rows in the FF DATA block
+var int              embeddedKept  = 0     // … of them for the wanted currencies
+var int              parsedCount   = 0     // events before the level switches
+var int              ffLast        = na    // latest Forex Factory event (not custom), any level
 
 levelShown(int lvl) =>
     lvl == 3 ? showHigh : lvl == 2 ? showMed : lvl == 1 ? showLow : showHol
@@ -272,6 +275,7 @@ if barstate.isfirst
     for s in embedded
         NewsEvent e = parseFF(s, ccyList)
         if not na(e)
+            embeddedKept += 1
             raw.push(e)
     if str.contains(pastedJson, '"title"')
         for chunk in str.split(pastedJson, "}")
@@ -282,6 +286,12 @@ if barstate.isfirst
         NewsEvent e = parseCustom(ln, TZ)
         if not na(e)
             raw.push(e)
+    parsedCount := raw.size()
+    // Data freshness is judged on Forex Factory items only: a custom line for next
+    // month must not make this week's data look current.
+    for e in raw
+        if e.currency != ""
+            ffLast := na(ffLast) ? e.t : math.max(ffLast, e.t)
 
     // De-duplicate (same time + currency + title) and sort by time. Within one release
     // time the most important item comes first (⭐, then impact), then the feed's order.
@@ -624,23 +634,20 @@ if barstate.islast and showTable
     tbl.merge_cells(0, 0, nCols - 1, 0)
 
     // Row 1: can I trade right now?
-    int future = 0
-    for e in events
-        if e.t > nowT
-            future += 1
+    bool   ffDone = na(ffLast) or ffLast <= nowT
     int    wNow = windowAt(nowT)
     int    wNext = windowAfter(nowT)
     string status = ""
     color  statusBg = color.new(#089981, 20)
     if events.size() == 0
-        status   := embeddedCount > 0 ? "⚠️ 内置数据的货币是 " + FF_CURRENCIES + "，和「货币」设置（" + CCY + "）不一致，请改成相同的值" : "⚠️ 还没有数据：把 Forex Factory JSON 粘贴到设置里，或运行 ff_usd_news.py"
+        status   := parsedCount > 0 ? "⚠️ 数据里的事件都被「新闻屏蔽窗口」里的显示开关隐藏了" : embeddedCount > 0 ? "⚠️ 内置数据的货币是 " + FF_CURRENCIES + "，和「货币」设置（" + CCY + "）不一致，请改成相同的值" : "⚠️ 还没有数据：把 Forex Factory JSON 粘贴到设置里，或运行 ff_usd_news.py"
         statusBg := color.new(#FF9800, 20)
     else if wNow >= 0
         status   := "⛔ 新闻窗口中，暂停交易 · 至 " + str.format_time(winEnd.get(wNow), "HH:mm", TZ) + "（还剩 " + fmtDur(winEnd.get(wNow) - nowT) + "）"
         statusBg := color.new(levelColor(winLevel.get(wNow)), 20)
-    else if future == 0
-        // Everything loaded is in the past: nothing is known about what comes next.
-        status   := "⚠️ 已加载的新闻都已过去，后面有没有新闻未知 · 新一周数据出来后请更新"
+    else if ffDone
+        // Forex Factory data is used up: nothing is known about what comes next.
+        status   := na(ffLast) ? "⚠️ 没有 Forex Factory 数据（只有自定义事件）· 请粘贴本周 JSON 或运行 ff_usd_news.py" : "⚠️ 已加载的 Forex Factory 新闻都已过去，后面有没有新闻未知 · 新一周数据出来后请更新"
         statusBg := color.new(#FF9800, 20)
     else if wNext >= 0 and winStart.get(wNext) - nowT <= alertLead * 60000
         status   := "⚠️ " + fmtDur(winStart.get(wNext) - nowT) + "后进入新闻窗口（" + str.format_time(winStart.get(wNext), "HH:mm", TZ) + "–" + str.format_time(winEnd.get(wNext), "HH:mm", TZ) + "）"
@@ -676,12 +683,12 @@ if barstate.islast and showTable
 
     // Footer: data freshness.
     string foot = "共 " + str.tostring(events.size()) + " 条"
-    if events.size() > 0
-        foot += " · 数据至 " + str.format_time(events.last().t, "MM-dd", TZ)
+    if not na(ffLast)
+        foot += " · 数据至 " + str.format_time(ffLast, "MM-dd", TZ)
     if FF_UPDATED != ""
         foot += " · 更新于 " + FF_UPDATED
     color footColor = dim
-    if events.size() > 0 and future == 0
+    if events.size() > 0 and ffDone
         foot := "⚠️ 数据已用完 · " + foot
         footColor := color.new(#FF9800, 0)
     tbl.cell(0, row, foot, text_color = footColor, text_size = size.tiny, text_halign = text.align_left)
@@ -696,14 +703,15 @@ varip bool staleWarned = false
 
 if barstate.isrealtime
     int nowT = timenow
-    // Heads-up N minutes before the no-trade window of the next important release.
+    // Heads-up N minutes before the no-trade window of each important release.
+    // Clusters are sorted, so lastWarned works as a high-water mark.
     for [ci, ct] in clTime
-        if ct > nowT and clLevel.get(ci) >= alertMin
+        if ct > nowT and ct > lastWarned and clLevel.get(ci) >= alertMin
             int wi = windowAt(ct)
             if wi < 0
                 wi := windowAt(ct - 1)    // post = 0: the window ends exactly at the release
             int ws = wi >= 0 ? math.min(winStart.get(wi), ct) : ct
-            if ws - nowT <= alertLead * 60000 and lastWarned != ct
+            if ws - nowT <= alertLead * 60000
                 string msg = syminfo.ticker + " · " + (ws > nowT ? fmtDur(ws - nowT) + "后进入 USD 新闻窗口（" + str.format_time(ws, "HH:mm", TZ) + " 起），" + fmtWhen(ct, false) + " 公布：" : fmtDur(ct - nowT) + "后公布 USD 新闻（" + fmtWhen(ct, false) + "）：")
                 int k = clFirst.get(ci)
                 while k < events.size() and events.get(k).t == ct
@@ -713,7 +721,6 @@ if barstate.isrealtime
                     k += 1
                 alert(msg, alert.freq_all)
                 lastWarned := ct
-            break
     // Entering / leaving a no-trade window.
     int wNow = windowAt(nowT)
     if alertWin and wNow != lastWin
@@ -722,7 +729,7 @@ if barstate.isrealtime
         else if wNow < 0 and lastWin >= 0 and winLevel.get(lastWin) >= alertMin
             alert(syminfo.ticker + " · ✅ USD 新闻窗口结束，可以交易", alert.freq_all)
     lastWin := wNow
-    // Data used up (or never loaded) in this alert: after the last release and its window.
-    if not staleWarned and (clTime.size() == 0 or (clTime.last() <= nowT and wNow < 0))
-        alert(syminfo.ticker + " · ⚠️ 这个警报里的新闻数据已经用完" + (clTime.size() > 0 ? "（数据至 " + str.format_time(clTime.last(), "MM-dd", TZ) + "）" : "") + "。新一周数据出来后请更新数据，然后删除并重新创建警报。", alert.freq_all)
+    // Forex Factory data used up (or never loaded) in this alert: after the last item and its window.
+    if not staleWarned and (na(ffLast) or (ffLast <= nowT and wNow < 0))
+        alert(syminfo.ticker + " · ⚠️ 这个警报里的新闻数据已经用完" + (na(ffLast) ? "" : "（数据至 " + str.format_time(ffLast, "MM-dd", TZ) + "）") + "。新一周数据出来后请更新数据，然后删除并重新创建警报。", alert.freq_all)
         staleWarned := true

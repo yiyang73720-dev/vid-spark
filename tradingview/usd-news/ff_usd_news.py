@@ -183,8 +183,14 @@ def parse_feed(raw: bytes | str, xml_tz: timezone = timezone.utc) -> list:
     if head.startswith("[") or head.startswith("{"):
         return parse_json_feed(json.loads(text))
     if head.startswith("<"):
-        # Bytes let ElementTree honour the declared encoding (Forex Factory uses windows-1252).
-        return parse_xml_feed(raw.lstrip() if isinstance(raw, bytes) else text.lstrip(), xml_tz)
+        # A file that is valid UTF-8 is read as such (browsers and editors re-save as UTF-8);
+        # otherwise the bytes go to ElementTree, which honours the declared windows-1252.
+        if isinstance(raw, bytes):
+            try:
+                return parse_xml_feed(raw.decode("utf-8-sig").lstrip(), xml_tz)
+            except UnicodeDecodeError:
+                return parse_xml_feed(raw.lstrip(), xml_tz)
+        return parse_xml_feed(text.lstrip(), xml_tz)
     raise FeedError("无法识别的数据格式（既不是 JSON 也不是 XML）")
 
 
@@ -425,17 +431,20 @@ def main(argv=None) -> int:
             pass
 
     fresh_sets = []
+    this_ok = False  # this week's data actually arrived (next week alone is not enough)
     if args.file:
         for f in args.file:
             try:
                 fresh_sets.append(parse_feed(Path(f).read_bytes(), args.xml_tz))
                 note(f"· {f} → {len(fresh_sets[-1])} 条（所有货币）")
+                this_ok = True
             except (OSError, FeedError, ValueError, ET.ParseError) as e:
                 note(f"! 读取 {f} 失败：{e}")
     else:
         for which in ["this"] + (["next"] if args.next_week else []):
             try:
                 fresh_sets.append(fetch_week(which, cache, now, args.min_interval, args.force))
+                this_ok = this_ok or which == "this"
             except FeedError as e:
                 level = "!" if which == "this" else "·"
                 note(f"{level} {which} week 下载失败：{e}")
@@ -452,7 +461,7 @@ def main(argv=None) -> int:
     for fresh in fresh_sets:
         events = merge(events, fresh)
     events = [e for e in events if e.when >= now - timedelta(days=args.keep_days)]
-    got_fresh = bool(fresh_sets)
+    got_fresh = this_ok
     if got_fresh:
         cache["updated"] = now.isoformat()
     if not args.no_cache:

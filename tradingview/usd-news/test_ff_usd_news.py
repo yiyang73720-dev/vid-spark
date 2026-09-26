@@ -100,6 +100,11 @@ class ParseTests(unittest.TestCase):
         xml = SAMPLE_XML.replace("Treasury Sec Speaks", "Treasury Sec\u2019s Remarks").encode("cp1252")
         self.assertEqual(ff.parse_feed(xml)[2].title, "Treasury Sec\u2019s Remarks")
 
+    def test_xml_feed_resaved_as_utf8(self):
+        xml = SAMPLE_XML.replace("Treasury Sec Speaks", "Treasury Sec\u2019s Remarks").encode("utf-8")
+        self.assertEqual(ff.parse_feed(xml)[2].title, "Treasury Sec\u2019s Remarks")
+        self.assertEqual(ff.parse_feed(b"\xef\xbb\xbf" + xml)[2].title, "Treasury Sec\u2019s Remarks")
+
     def test_html_block_page_is_an_error(self):
         with self.assertRaises(ff.FeedError):
             ff.parse_feed(b"<!DOCTYPE html><html><body>Request Denied</body></html>")
@@ -152,8 +157,9 @@ class RenderTests(unittest.TestCase):
             pine = Path(tmp) / "x.pine"
             pine.write_bytes((HERE / "USD_News_ForexFactory.pine").read_bytes().replace(b"\n", b"\r\n"))
             os.chmod(pine, 0o644)
+            mode = stat.S_IMODE(os.stat(pine).st_mode)  # Windows reports 0o666
             ff.update_pine(pine, ff.render_block([], ["USD"], ""))
-            self.assertEqual(stat.S_IMODE(os.stat(pine).st_mode), 0o644)
+            self.assertEqual(stat.S_IMODE(os.stat(pine).st_mode), mode)
             data = pine.read_bytes()
             self.assertEqual(data.count(b"\n"), data.count(b"\r\n"))
             self.assertEqual([p.name for p in Path(tmp).iterdir()], ["x.pine"])
@@ -272,6 +278,25 @@ class CliTests(unittest.TestCase):
             self.run_cli("--file", str(feed), "--cache", str(cache), "--pine", str(pine), "--tz", "UTC", "--now", "2026-10-12T01:00:00Z")
             with mock.patch.object(ff, "fetch", side_effect=ff.FeedError("HTTP 429")):
                 code, _ = self.run_cli("--cache", str(cache), "--pine", str(pine), "--tz", "UTC", "--now", "2026-10-14T01:00:00Z")
+            self.assertEqual(code, 2)
+            self.assertIn("FF_UPDATED = '10-12 01:00'", pine.read_text(encoding="utf-8"))
+
+    def test_next_week_alone_is_not_fresh(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp) / "cache.json"
+            feed = Path(tmp) / "week.json"
+            feed.write_text(SAMPLE_JSON, encoding="utf-8")
+            pine = Path(tmp) / "x.pine"
+            shutil.copy(HERE / "USD_News_ForexFactory.pine", pine)
+            self.run_cli("--file", str(feed), "--cache", str(cache), "--no-pine", "--now", "2026-10-12T01:00:00Z")
+
+            def fake_fetch(url, timeout=20):
+                if "thisweek" in url:
+                    raise ff.FeedError("HTTP 429")
+                return SAMPLE_JSON.replace("2026-10-1", "2026-10-2").encode()
+
+            with mock.patch.object(ff, "fetch", fake_fetch):
+                code, _ = self.run_cli("--next-week", "--cache", str(cache), "--pine", str(pine), "--tz", "UTC", "--now", "2026-10-14T01:00:00Z")
             self.assertEqual(code, 2)
             self.assertIn("FF_UPDATED = '10-12 01:00'", pine.read_text(encoding="utf-8"))
 
