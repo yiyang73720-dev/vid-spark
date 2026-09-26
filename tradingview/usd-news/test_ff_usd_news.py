@@ -1,11 +1,15 @@
 """Tests for ff_usd_news.py — run with: python3 -m unittest test_ff_usd_news.py"""
 import contextlib
+import http.client
 import io
 import json
+import os
 import re
 import shutil
+import stat
 import tempfile
 import unittest
+from unittest import mock
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -55,6 +59,16 @@ class TimeTests(unittest.TestCase):
         self.assertEqual(ff.to_ny(datetime(2026, 7, 3, 12, 30, tzinfo=timezone.utc)).isoformat(), "2026-07-03T08:30:00-04:00")
         self.assertEqual(ff.to_ny(datetime(2026, 12, 4, 13, 30, tzinfo=timezone.utc)).isoformat(), "2026-12-04T08:30:00-05:00")
 
+    def test_to_ny_uses_the_right_offset_in_the_dst_switch_hours(self):
+        cases = {
+            datetime(2026, 11, 1, 5, 0): "2026-11-01T01:00:00-04:00",  # first 01:00 (EDT)
+            datetime(2026, 11, 1, 6, 0): "2026-11-01T01:00:00-05:00",  # second 01:00 (EST)
+            datetime(2026, 3, 8, 6, 30): "2026-03-08T01:30:00-05:00",
+            datetime(2026, 3, 8, 7, 0): "2026-03-08T03:00:00-04:00",
+        }
+        for utc, want in cases.items():
+            self.assertEqual(ff.to_ny(utc.replace(tzinfo=timezone.utc)).isoformat(), want)
+
     def test_parse_iso_variants(self):
         want = datetime(2026, 10, 14, 12, 30, tzinfo=timezone.utc)
         for s in ("2026-10-14T08:30:00-04:00", "2026-10-14T12:30:00Z", "2026-10-14T12:30:00+0000", "2026-10-14T08:30:00"):
@@ -81,6 +95,10 @@ class ParseTests(unittest.TestCase):
         self.assertTrue(holiday.all_day)
         self.assertTrue(tentative.all_day)
         self.assertEqual(tentative.when.isoformat(), "2026-11-10T00:00:00-05:00")
+
+    def test_xml_feed_honours_windows_1252(self):
+        xml = SAMPLE_XML.replace("Treasury Sec Speaks", "Treasury Sec\u2019s Remarks").encode("cp1252")
+        self.assertEqual(ff.parse_feed(xml)[2].title, "Treasury Sec\u2019s Remarks")
 
     def test_html_block_page_is_an_error(self):
         with self.assertRaises(ff.FeedError):
@@ -109,6 +127,7 @@ class RenderTests(unittest.TestCase):
         self.assertTrue(block.startswith(ff.BEGIN_MARK))
         self.assertTrue(block.endswith(ff.END_MARK))
         self.assertIn("const string FF_UPDATED = '10-12 09:00'", block)
+        self.assertIn("const string FF_CURRENCIES = 'USD'", block)
         decoded = [json.loads(s) for s in pine_strings(block)]
         self.assertEqual([d["title"] for d in decoded], [e.title for e in events])
         self.assertIn("Fed's Beige Book", [d["title"] for d in decoded])
@@ -127,6 +146,24 @@ class RenderTests(unittest.TestCase):
             self.assertEqual(once.count(ff.BEGIN_MARK), 1)
             self.assertIn("indicator(", once)
             self.assertIn("type NewsEvent", once)
+
+    def test_update_pine_keeps_mode_and_line_endings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pine = Path(tmp) / "x.pine"
+            pine.write_bytes((HERE / "USD_News_ForexFactory.pine").read_bytes().replace(b"\n", b"\r\n"))
+            os.chmod(pine, 0o644)
+            ff.update_pine(pine, ff.render_block([], ["USD"], ""))
+            self.assertEqual(stat.S_IMODE(os.stat(pine).st_mode), 0o644)
+            data = pine.read_bytes()
+            self.assertEqual(data.count(b"\n"), data.count(b"\r\n"))
+            self.assertEqual([p.name for p in Path(tmp).iterdir()], ["x.pine"])
+
+    def test_update_pine_rejects_non_utf8(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pine = Path(tmp) / "x.pine"
+            pine.write_bytes("// 中文\n".encode("gbk") + (HERE / "USD_News_ForexFactory.pine").read_bytes())
+            with self.assertRaises(ff.FeedError):
+                ff.update_pine(pine, ff.render_block([], ["USD"], ""))
 
 
 class CliTests(unittest.TestCase):
@@ -172,6 +209,71 @@ class CliTests(unittest.TestCase):
             self.assertIn("Retail Sales m/m", [d["title"] for d in json.loads(out)])
             code, out = self.run_cli("--file", str(week2), "--cache", str(cache), "--print-json", "--keep-days", "3", "--now", "2026-10-12T00:00:00Z")
             self.assertNotIn("Retail Sales m/m", [d["title"] for d in json.loads(out)])
+
+    def test_impact_accepts_chinese_and_letters(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            feed = Path(tmp) / "week.json"
+            feed.write_text(SAMPLE_JSON, encoding="utf-8")
+            code, out = self.run_cli("--file", str(feed), "--no-cache", "--print-json", "--impact", "高,l", "--now", "2026-10-12T01:00:00Z")
+            self.assertEqual(code, 0)
+            self.assertEqual(len(json.loads(out)), 4)
+            with self.assertRaises(SystemExit):
+                self.run_cli("--file", str(feed), "--no-cache", "--print-json", "--impact", "Hi")
+
+    def test_xml_tz_values(self):
+        self.assertEqual(ff.xml_tz_arg("+8").utcoffset(None), timedelta(hours=8))
+        self.assertEqual(ff.xml_tz_arg("UTC-05:00").utcoffset(None), timedelta(hours=-5))
+        self.assertEqual(ff.xml_tz_arg("gmt").utcoffset(None), timedelta(0))
+        for bad in ("+24", "EST5EDT-nonsense"):
+            with self.assertRaises(Exception):
+                ff.xml_tz_arg(bad)
+
+    def test_all_day_items_listed_under_their_new_york_date(self):
+        events = ff.parse_feed(SAMPLE_JSON.encode())
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            ff.print_summary(events, timezone(timedelta(hours=-7)), ff.parse_iso("2026-10-12T23:30:00-04:00"))
+        out = buf.getvalue()
+        self.assertIn("10-12 周一", out)
+        self.assertIn("全天  [假日] USD Bank Holiday", out)
+        self.assertNotIn("10-11", out)
+
+    def test_truncated_download_falls_back_to_mirror(self):
+        class Resp:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+            def read(self):
+                return SAMPLE_JSON.encode()
+
+        calls = []
+
+        def fake_urlopen(req, timeout=None):
+            calls.append(req.full_url)
+            if len(calls) == 1:
+                raise http.client.IncompleteRead(b"[{")
+            return Resp()
+
+        with mock.patch.object(ff.urllib.request, "urlopen", fake_urlopen), contextlib.redirect_stderr(io.StringIO()):
+            events = ff.fetch_week("this", {}, datetime(2026, 10, 12, tzinfo=timezone.utc), 300, False)
+        self.assertEqual(len(events), 6)
+        self.assertEqual(calls, ff.FEEDS["this"])
+
+    def test_failed_download_keeps_old_timestamp_and_exits_2(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp) / "cache.json"
+            feed = Path(tmp) / "week.json"
+            feed.write_text(SAMPLE_JSON, encoding="utf-8")
+            pine = Path(tmp) / "x.pine"
+            shutil.copy(HERE / "USD_News_ForexFactory.pine", pine)
+            self.run_cli("--file", str(feed), "--cache", str(cache), "--pine", str(pine), "--tz", "UTC", "--now", "2026-10-12T01:00:00Z")
+            with mock.patch.object(ff, "fetch", side_effect=ff.FeedError("HTTP 429")):
+                code, _ = self.run_cli("--cache", str(cache), "--pine", str(pine), "--tz", "UTC", "--now", "2026-10-14T01:00:00Z")
+            self.assertEqual(code, 2)
+            self.assertIn("FF_UPDATED = '10-12 01:00'", pine.read_text(encoding="utf-8"))
 
     def test_no_data_exits_non_zero(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -17,9 +17,12 @@ Only the Python standard library is used (Python 3.7+).
 from __future__ import annotations
 
 import argparse
+import contextlib
+import http.client
 import json
 import os
 import re
+import stat
 import sys
 import tempfile
 import urllib.error
@@ -47,6 +50,12 @@ BEGIN_MARK = "// @@FF-DATA-BEGIN@@"
 END_MARK = "// @@FF-DATA-END@@"
 IMPACT_RANK = {"High": 3, "Medium": 2, "Low": 1}
 IMPACT_ZH = {"High": "高", "Medium": "中", "Low": "低", "Holiday": "假日"}
+IMPACT_ALIASES = {
+    "high": "High", "h": "High", "高": "High",
+    "medium": "Medium", "med": "Medium", "m": "Medium", "中": "Medium",
+    "low": "Low", "l": "Low", "低": "Low",
+    "holiday": "Holiday", "假日": "Holiday",
+}
 WEEKDAY_ZH = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
 
 
@@ -75,9 +84,10 @@ def ny_offset(local: datetime) -> timedelta:
 def to_ny(dt: datetime) -> datetime:
     """Aware datetime -> the same instant as New York wall-clock time with a fixed offset."""
     utc = dt.astimezone(timezone.utc).replace(tzinfo=None)
-    # The EDT candidate is right whenever it lands inside DST (NY local = UTC-4).
-    edt = utc - timedelta(hours=4)
-    off = timedelta(hours=-4) if ny_offset(edt) == timedelta(hours=-4) else timedelta(hours=-5)
+    # DST runs from 02:00 EST (07:00 UTC) on the 2nd Sunday of March to 02:00 EDT (06:00 UTC) on the 1st Sunday of November.
+    start = datetime.combine(_nth_sunday(utc.year, 3, 2), datetime.min.time()) + timedelta(hours=7)
+    end = datetime.combine(_nth_sunday(utc.year, 11, 1), datetime.min.time()) + timedelta(hours=6)
+    off = timedelta(hours=-4) if start <= utc < end else timedelta(hours=-5)
     return (utc + off).replace(tzinfo=timezone(off))
 
 
@@ -173,7 +183,8 @@ def parse_feed(raw: bytes | str, xml_tz: timezone = timezone.utc) -> list:
     if head.startswith("[") or head.startswith("{"):
         return parse_json_feed(json.loads(text))
     if head.startswith("<"):
-        return parse_xml_feed(text, xml_tz)
+        # Bytes let ElementTree honour the declared encoding (Forex Factory uses windows-1252).
+        return parse_xml_feed(raw.lstrip() if isinstance(raw, bytes) else text.lstrip(), xml_tz)
     raise FeedError("无法识别的数据格式（既不是 JSON 也不是 XML）")
 
 
@@ -194,7 +205,7 @@ def parse_json_feed(data) -> list:
     return out
 
 
-def parse_xml_feed(text: str, xml_tz: timezone = timezone.utc) -> list:
+def parse_xml_feed(text, xml_tz=timezone.utc) -> list:
     """ff_calendar_thisweek.xml: dates are MM-DD-YYYY, times like 8:30am in GMT."""
     out = []
     for node in ET.fromstring(text).iter("event"):
@@ -240,8 +251,8 @@ def fetch(url: str, timeout: float = 20) -> bytes:
     except urllib.error.HTTPError as e:
         hint = "（请求太频繁，Forex Factory 限流了，过几分钟再试）" if e.code in (403, 429) else ""
         raise FeedError(f"HTTP {e.code}{hint}") from e
-    except (urllib.error.URLError, OSError) as e:
-        raise FeedError(f"网络错误：{getattr(e, 'reason', e)}") from e
+    except (urllib.error.URLError, OSError, http.client.HTTPException) as e:
+        raise FeedError(f"网络错误：{getattr(e, 'reason', None) or type(e).__name__}") from e
 
 
 def fetch_week(which: str, cache: dict, now: datetime, min_interval: int, force: bool) -> list:
@@ -286,6 +297,7 @@ def pine_literal(s: str) -> str:
 
 
 def render_block(events: list, currencies: list, updated: str) -> str:
+    """The FF DATA block: FF_UPDATED, FF_CURRENCIES and one d.push('<json>') per event."""
     lines = [
         f"{BEGIN_MARK} — written by ff_usd_news.py; everything up to FF-DATA-END is replaced on each run.",
     ]
@@ -294,6 +306,7 @@ def render_block(events: list, currencies: list, updated: str) -> str:
         lines.append(f"// {len(events)} events · {','.join(currencies)} · {first} → {last} (New York dates)")
     lines += [
         f"const string FF_UPDATED = {pine_literal(updated)}",
+        f"const string FF_CURRENCIES = {pine_literal(','.join(currencies))}",
         "ffEmbeddedData() =>",
         "    array<string> d = array.new<string>()",
     ]
@@ -304,25 +317,42 @@ def render_block(events: list, currencies: list, updated: str) -> str:
 
 
 def update_pine(path: Path, block: str) -> None:
-    src = path.read_text(encoding="utf-8")
+    target = path.resolve()  # follow a symlink instead of replacing it
+    raw = target.read_bytes()
+    try:
+        src = raw.decode("utf-8-sig")
+    except UnicodeDecodeError as e:
+        raise FeedError(f"{path.name} 不是 UTF-8 编码，请用 UTF-8 重新保存后再运行") from e
+    crlf = b"\r\n" in raw
+    src = src.replace("\r\n", "\n")
     start = src.find(BEGIN_MARK)
     end = src.find(END_MARK)
     if start < 0 or end < start:
         raise FeedError(f"{path.name} 里找不到 {BEGIN_MARK} / {END_MARK} 标记")
     new = src[:start] + block + src[end + len(END_MARK):]
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), suffix=".tmp")
-    with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
-        f.write(new)
-    os.replace(tmp, path)
+    if crlf:
+        new = new.replace("\n", "\r\n")
+    fd, tmp = tempfile.mkstemp(dir=str(target.parent), prefix=".ff_usd_news-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
+            f.write(new)
+        with contextlib.suppress(OSError):
+            os.chmod(tmp, stat.S_IMODE(os.stat(target).st_mode))
+        os.replace(tmp, target)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp)
+        raise
 
 
 def print_summary(events: list, tz, now: datetime) -> None:
-    upcoming = [e for e in events if e.when >= now - timedelta(hours=1) or (e.all_day and e.when.date() >= now.date())]
+    ny_today = to_ny(now).date()
+    upcoming = [e for e in events if e.when >= now - timedelta(hours=1) or (e.all_day and e.when.date() >= ny_today)]
     if not upcoming:
         print("  （没有未来的事件）")
     current = None
     for e in upcoming:
-        local = e.when.astimezone(tz)
+        local = e.when if e.all_day else e.when.astimezone(tz)  # all-day items belong to their New York date
         day = f"{local:%m-%d} {WEEKDAY_ZH[local.weekday()]}"
         if day != current:
             print(f"\n  {day}")
@@ -333,17 +363,44 @@ def print_summary(events: list, tz, now: datetime) -> None:
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────────
+def impact_arg(text: str) -> set:
+    out = set()
+    for tok in text.split(","):
+        if tok.strip():
+            name = IMPACT_ALIASES.get(tok.strip().lower())
+            if not name:
+                raise argparse.ArgumentTypeError(f"不认识的影响级别：{tok.strip()}（可用 High/Medium/Low/Holiday、H/M/L 或 高/中/低/假日）")
+            out.add(name)
+    return out
+
+
+def xml_tz_arg(text: str):
+    t = text.strip()
+    if t.upper() in ("UTC", "GMT", "Z"):
+        return timezone.utc
+    m = re.fullmatch(r"(?:UTC|GMT)?\s*([+-]?)(\d{1,2})(?::?(\d{2}))?", t, re.I)
+    if m and int(m.group(2)) <= 14 and int(m.group(3) or 0) <= 59:
+        sign = -1 if m.group(1) == "-" else 1
+        return timezone(sign * timedelta(hours=int(m.group(2)), minutes=int(m.group(3) or 0)))
+    try:
+        from zoneinfo import ZoneInfo
+
+        return ZoneInfo(t)
+    except Exception:
+        raise argparse.ArgumentTypeError(f"无法识别的时区：{text}（例如 UTC、+8、--xml-tz=-05:00 或 America/New_York）")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Forex Factory USD 新闻 → TradingView 指标数据")
     ap.add_argument("--currency", default="USD", help="逗号分隔的货币，默认 USD；ALL = 全部")
     ap.add_argument("--next-week", action="store_true", help="同时尝试下载下周的数据（Forex Factory 不一定提供）")
     ap.add_argument("--file", action="append", default=[], help="使用本地保存的 JSON/XML 文件（可多次指定），不联网")
-    ap.add_argument("--xml-tz", default="UTC", help="XML 文件里时间的时区偏移，默认 UTC（Forex Factory XML 用 GMT）")
+    ap.add_argument("--xml-tz", default=timezone.utc, type=xml_tz_arg, help="XML 文件里时间的时区，默认 UTC（Forex Factory XML 用 GMT）；负偏移写成 --xml-tz=-05:00")
     ap.add_argument("--pine", default=str(DEFAULT_PINE), help="要更新的 .pine 文件（默认同目录的 USD_News_ForexFactory.pine）")
     ap.add_argument("--no-pine", action="store_true", help="不修改 .pine 文件")
     ap.add_argument("--print-json", action="store_true", help="输出精简 JSON，可直接粘贴到指标的「Forex Factory JSON」输入框")
     ap.add_argument("--keep-days", type=int, default=14, help="保留多少天以前的历史事件（默认 14）")
-    ap.add_argument("--impact", default="High,Medium,Low,Holiday", help="写入哪些影响级别，默认全部（指标里还能再筛选）")
+    ap.add_argument("--impact", default=set(IMPACT_ZH), type=impact_arg, help="写入哪些影响级别，逗号分隔：High/Medium/Low/Holiday（或 H/M/L、高/中/低/假日），默认全部")
     ap.add_argument("--tz", default=None, help="打印时间用的时区，例如 Asia/Shanghai；默认本机时区")
     ap.add_argument("--cache", default=str(DEFAULT_CACHE), help="缓存文件（累积多周数据、避免重复下载）")
     ap.add_argument("--no-cache", action="store_true", help="不读写缓存")
@@ -356,7 +413,7 @@ def main(argv=None) -> int:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     now = parse_iso(args.now) if args.now else datetime.now(timezone.utc)
     currencies = [c.strip().upper() for c in args.currency.split(",") if c.strip()]
-    impacts = {normalize_impact(i) for i in args.impact.split(",") if i.strip()}
+    impacts = args.impact
     cache_path = Path(args.cache)
     cache = {} if args.no_cache else load_cache(cache_path)
 
@@ -369,14 +426,9 @@ def main(argv=None) -> int:
 
     fresh_sets = []
     if args.file:
-        m = re.fullmatch(r"(?:UTC|GMT)?\s*([+-])?(\d{1,2})(?::?(\d{2}))?", args.xml_tz.strip(), re.I)
-        xml_tz = timezone.utc
-        if m and args.xml_tz.strip().upper() not in ("UTC", "GMT"):
-            sign = -1 if m.group(1) == "-" else 1
-            xml_tz = timezone(sign * timedelta(hours=int(m.group(2)), minutes=int(m.group(3) or 0)))
         for f in args.file:
             try:
-                fresh_sets.append(parse_feed(Path(f).read_bytes(), xml_tz))
+                fresh_sets.append(parse_feed(Path(f).read_bytes(), args.xml_tz))
                 note(f"· {f} → {len(fresh_sets[-1])} 条（所有货币）")
             except (OSError, FeedError, ValueError, ET.ParseError) as e:
                 note(f"! 读取 {f} 失败：{e}")
@@ -400,20 +452,28 @@ def main(argv=None) -> int:
     for fresh in fresh_sets:
         events = merge(events, fresh)
     events = [e for e in events if e.when >= now - timedelta(days=args.keep_days)]
+    got_fresh = bool(fresh_sets)
+    if got_fresh:
+        cache["updated"] = now.isoformat()
     if not args.no_cache:
         cache["events"] = [e.to_json() for e in events]
         save_cache(cache_path, cache)
+    # "Updated at" is when data was last downloaded, not when this run happened.
+    stamp = now if got_fresh else (parse_iso(cache["updated"]) if cache.get("updated") else None)
+    stale = 0 if got_fresh else 2
+    if stale:
+        note("! 这次没有拿到新数据，下面用的是缓存里的旧数据")
 
     wanted = [
         e for e in events
         if ("ALL" in currencies or e.country in currencies) and (e.impact in impacts or e.impact not in IMPACT_RANK and "Holiday" in impacts)
     ]
     tz = display_tz(args.tz)
-    updated = now.astimezone(tz).strftime("%m-%d %H:%M")
+    updated = stamp.astimezone(tz).strftime("%m-%d %H:%M") if stamp else ""
 
     if args.print_json:
         print(json.dumps([e.to_json() for e in wanted], ensure_ascii=False, separators=(",", ":")))
-        return 0
+        return stale
 
     print(f"\n{','.join(currencies)} 事件 {len(wanted)} 条（时间为 {args.tz or '本机时区'}）：")
     print_summary(wanted, tz, now)
@@ -425,8 +485,12 @@ def main(argv=None) -> int:
         except (OSError, FeedError) as e:
             note(f"\n! 更新 {pine} 失败：{e}")
             return 1
-        print(f"\n✓ 已写入 {pine}\n  打开 TradingView → Pine 编辑器 → 粘贴整个文件 → 保存（已添加到图表的指标会自动更新）")
-    return 0
+        print(f"\n✓ 已写入 {pine}")
+        print("  打开 TradingView → Pine 编辑器 → 粘贴整个文件 → 保存。图表上的指标会自动更新，")
+        print("  但已有的警报不会：请删除本指标的旧警报并重新创建。")
+        if currencies != ["USD"]:
+            print(f"  指标设置里的「货币」要改成 {','.join(currencies)}，否则这些事件不会显示。")
+    return stale
 
 
 if __name__ == "__main__":

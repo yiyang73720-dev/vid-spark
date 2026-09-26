@@ -28,8 +28,8 @@ const string G_COLOR = "颜色 Colors"
 const string TZ_EXCHANGE = "交易所时区 Exchange"
 
 string pastedJson   = input.text_area("", "Forex Factory JSON（整页粘贴）", tooltip = "浏览器打开 https://nfs.faireconomy.media/ff_calendar_thisweek.json ，全选复制后粘贴到这里。整页（所有货币）直接粘贴即可，指标会按下方「货币」过滤。每周更新一次。", group = G_DATA, display = display.none)
-string customEvents = input.text_area("", "自定义事件 Custom events", tooltip = "每行一条，时间按下方「显示时区」解读：\n2026-10-02 20:30 H 非农\n2026-10-07 02:00 M 美联储官员讲话\n2026-10-12 假日 哥伦布日\n影响级别：H/M/L 或 高/中/低 或 假日；省略则按高影响处理。只写日期不写时间 = 全天事件。以 # 开头的行会被忽略。", group = G_DATA, display = display.none)
-string currencyIn   = input.string("USD", "货币 Currency", tooltip = "逗号分隔，例如 USD 或 USD,CNY。填 ALL 显示全部货币。", group = G_DATA, display = display.none)
+string customEvents = input.text_area("", "自定义事件 Custom events", tooltip = "每行一条，时间按下方「显示时区」解读：\n2026-10-02 20:30 H 非农\n2026-10-07 02:00 M 美联储官员讲话\n2026-10-12 假日 哥伦布日\n影响级别：H/M/L 或 高/中/低 或 假日；省略则按高影响处理（标题以 High / Low / Holiday 开头时请先写级别）。时间用 24 小时制，也可以写 8:30pm。只写日期不写时间 = 全天事件。以 # 开头的行会被忽略。", group = G_DATA, display = display.none)
+string currencyIn   = input.string("USD", "货币 Currency", tooltip = "逗号分隔，例如 USD 或 USD,CNY。填 ALL 显示全部货币。用 ff_usd_news.py --currency 写入其他货币时，这里要填相同的值。", group = G_DATA, display = display.none)
 string tzIn         = input.string("Asia/Shanghai", "显示时区 Time zone", options = ["Asia/Shanghai", "Asia/Hong_Kong", "Asia/Taipei", "Asia/Singapore", "Asia/Tokyo", "Asia/Dubai", "Europe/London", "Europe/Berlin", "Europe/Moscow", "America/New_York", "America/Chicago", "America/Los_Angeles", "Australia/Sydney", "UTC", TZ_EXCHANGE], tooltip = "标签、列表里的时间用这个时区显示；请和图表右下角的时区保持一致。自定义事件的时间也按这个时区解读。", group = G_DATA, display = display.none)
 
 bool showHigh  = input.bool(true,  "🔴 高影响  前 / 后", inline = "high", group = G_WIN, display = display.none)
@@ -41,8 +41,8 @@ int  postMed   = input.int(5, "", minval = 0, maxval = 1440, inline = "med", gro
 bool showLow   = input.bool(false, "🟡 低影响  前 / 后", inline = "low", group = G_WIN, display = display.none)
 int  preLow    = input.int(0, "", minval = 0, maxval = 1440, inline = "low", group = G_WIN, display = display.none)
 int  postLow   = input.int(0, "", minval = 0, maxval = 1440, inline = "low", group = G_WIN, display = display.none)
-bool showHol   = input.bool(true,  "⚪ 假日 / 全天事件（只列出，不设窗口）", group = G_WIN, display = display.none)
-string majorIn = input.string("Non-Farm|CPI|FOMC|Federal Funds Rate|Fed Chair", "⭐ 重大事件关键词", tooltip = "标题包含任一关键词（用 | 分隔，不区分大小写）的事件使用下面更长的窗口，并在列表里加粗。", group = G_WIN, display = display.none)
+bool showHol   = input.bool(true,  "⚪ 假日 Holiday（只列出，不设窗口）", group = G_WIN, display = display.none)
+string majorIn = input.string("Non-Farm|CPI|FOMC Statement|FOMC Press Conference|FOMC Meeting Minutes|Federal Funds Rate|Fed Chair|非农|利率决议|美联储主席", "⭐ 重大事件关键词", tooltip = "标题包含任一关键词（用 | 分隔，不区分大小写）的事件使用下面更长的窗口，并在列表里标 ⭐。中文关键词用于自定义事件。", group = G_WIN, display = display.none)
 int  preMajor  = input.int(30, "⭐ 重大事件  前 / 后", minval = 0, maxval = 1440, inline = "major", group = G_WIN, display = display.none)
 int  postMajor = input.int(30, "", minval = 0, maxval = 1440, inline = "major", group = G_WIN, display = display.none)
 
@@ -52,7 +52,7 @@ bool   doLines    = input.bool(true, "事件竖线", group = G_CHART, display = 
 bool   doWinLines = input.bool(true, "未来窗口的起止虚线", tooltip = "还没走出来的 K 线无法染背景，用两条虚线标出窗口范围。", group = G_CHART, display = display.none)
 string labelMode  = input.string("简洁", "事件标签", options = ["简洁", "详细", "关闭"], group = G_CHART, display = display.none)
 string labelSize  = input.string(size.small, "标签字号", options = [size.tiny, size.small, size.normal], group = G_CHART, display = display.none)
-int    lookback   = input.int(7, "显示过去 N 天的事件", minval = 0, maxval = 365, group = G_CHART, display = display.none)
+int    lookback   = input.int(14, "显示过去 N 天的事件", minval = 0, maxval = 365, group = G_CHART, display = display.none)
 string langIn     = input.string("English", "事件名称语言", options = ["English", "中文", "中文 + English"], tooltip = "中文只覆盖常见事件，没有译名的保持英文。", group = G_CHART, display = display.none)
 
 bool   showTable = input.bool(true, "显示新闻列表", group = G_TABLE, display = display.none)
@@ -61,8 +61,8 @@ int    tableRows = input.int(8, "显示条数", minval = 1, maxval = 40, group =
 string tableSize = input.string(size.small, "字号", options = [size.tiny, size.small, size.normal], group = G_TABLE, display = display.none)
 bool   showFcst  = input.bool(true, "显示预测值 / 前值", group = G_TABLE, display = display.none)
 
-int    alertLead = input.int(15, "提前 N 分钟提醒", minval = 0, maxval = 1440, tooltip = "在「创建警报」里选择本指标 → 「任何 alert() 函数调用」。", group = G_ALERT, display = display.none)
-string alertLvl  = input.string("高", "最低提醒级别", options = ["高", "中", "低"], group = G_ALERT, display = display.none)
+int    alertLead = input.int(15, "提前 N 分钟提醒", minval = 0, maxval = 1440, tooltip = "在新闻窗口开始前 N 分钟提醒（列表顶部也会提前 N 分钟变成 ⚠️）。创建警报时条件选本指标 →「任何 alert() 函数调用」。每次更新数据后，要删除旧警报并重新创建。", group = G_ALERT, display = display.none)
+string alertLvl  = input.string("高", "最低提醒级别", options = ["高", "中", "低"], tooltip = "只对这个级别及以上的新闻提醒；「USD 新闻窗口开始 / 结束」两个条件也遵守这个设置。", group = G_ALERT, display = display.none)
 bool   alertWin  = input.bool(true, "新闻窗口开始 / 结束时提醒", group = G_ALERT, display = display.none)
 
 color colHigh = input.color(#F23645, "高", inline = "c", group = G_COLOR, display = display.none)
@@ -71,11 +71,17 @@ color colLow  = input.color(#FBC02D, "低", inline = "c", group = G_COLOR, displ
 color colHol  = input.color(#9598A1, "假日", inline = "c", group = G_COLOR, display = display.none)
 int   shadeTr = input.int(85, "背景透明度", minval = 0, maxval = 100, group = G_COLOR, display = display.none)
 
-string TZ = tzIn == TZ_EXCHANGE ? syminfo.timezone : tzIn
+string TZ       = tzIn == TZ_EXCHANGE ? syminfo.timezone : tzIn
+string CCY      = str.upper(str.replace_all(currencyIn, " ", ""))
+bool   multiCcy = CCY == "ALL" or str.contains(CCY, ",")
+int    alertMin = alertLvl == "高" ? 3 : alertLvl == "中" ? 2 : 1
+// "Now" for the table and drawings; in Bar Replay that is the replay position, not the clock.
+int    NOW      = str.contains(syminfo.tickerid, "replay") ? nz(time_close, time) : timenow
 
 // ═══ FF DATA ═════════════════════════════════════════════════════════════════
 // @@FF-DATA-BEGIN@@ — written by ff_usd_news.py; everything up to FF-DATA-END is replaced on each run.
 const string FF_UPDATED = ""
+const string FF_CURRENCIES = ""
 ffEmbeddedData() =>
     array<string> d = array.new<string>()
     d
@@ -99,22 +105,18 @@ levelOf(string impact) =>
     switch s
         "high"         => 3
         "h"            => 3
-        "3"            => 3
         "高"           => 3
         "medium"       => 2
         "med"          => 2
         "m"            => 2
-        "2"            => 2
         "中"           => 2
         "low"          => 1
         "l"            => 1
-        "1"            => 1
         "低"           => 1
         "holiday"      => 0
         "non-economic" => 0
         "假日"         => 0
         "全天"         => 0
-        "0"            => 0
         => -1
 
 // Value of a string field in one flat JSON object; "" when missing or not a string.
@@ -178,18 +180,29 @@ parseFF(string obj, string ccyList) =>
             string impact = jsonStr(obj, "impact")
             int lvl = levelOf(impact)
             bool allDay = lvl == 0 or nyMidnight or jsonTrue(obj, "allDay") or jsonTrue(obj, "tentative")
-            ev := NewsEvent.new(t, math.max(lvl, 0), title, jsonStr(obj, "forecast"), jsonStr(obj, "previous"), jsonStr(obj, "actual"), ccy, allDay, false)
+            int  at = t
+            if allDay
+                // Forex Factory dates these by the New York day; show that same day in any zone.
+                string nyd = str.format_time(t, "yyyy-MM-dd", "America/New_York")
+                at := timestamp(TZ, int(str.tonumber(str.substring(nyd, 0, 4))), int(str.tonumber(str.substring(nyd, 5, 7))), int(str.tonumber(str.substring(nyd, 8, 10))), 0, 0)
+            ev := NewsEvent.new(at, math.max(lvl, 0), title, jsonStr(obj, "forecast"), jsonStr(obj, "previous"), jsonStr(obj, "actual"), ccy, allDay, false)
     ev
 
 // "2026-10-02 20:30 H Title" (time in the display time zone) → NewsEvent or na.
 parseCustom(string raw, string tz) =>
     NewsEvent ev = na
-    string s = str.trim(str.replace_all(str.replace_all(str.replace_all(raw, "，", " "), ",", " "), "|", " "))
+    string s = str.replace_all(str.replace_all(str.replace_all(raw, "，", " "), ",", " "), "|", " ")
+    s := str.trim(str.replace_all(s, "：", ":"))
     if s != "" and not str.startswith(s, "#") and not str.startswith(s, "//")
         string d = str.match(s, "^\\d{4}-\\d{1,2}-\\d{1,2}")
         if d != ""
             array<string> ymd = str.split(d, "-")
+            int yy = int(str.tonumber(ymd.get(0)))
+            int mo = int(str.tonumber(ymd.get(1)))
+            int dd = int(str.tonumber(ymd.get(2)))
             string rest = str.trim(str.substring(s, str.length(d)))
+            if str.match(rest, "^T\\d") != ""
+                rest := str.substring(rest, 1)
             string hm = str.match(rest, "^\\d{1,2}:\\d{2}")
             int hh = 0
             int mi = 0
@@ -198,14 +211,20 @@ parseCustom(string raw, string tz) =>
                 hh := int(str.tonumber(p.get(0)))
                 mi := int(str.tonumber(p.get(1)))
                 rest := str.trim(str.substring(rest, str.length(hm)))
+                string ap = str.lower(str.substring(rest, 0, math.min(2, str.length(rest))))
+                if (ap == "am" or ap == "pm") and (str.length(rest) == 2 or str.substring(rest, 2, 3) == " ") and hh >= 1 and hh <= 12
+                    hh := hh % 12 + (ap == "pm" ? 12 : 0)
+                    rest := str.trim(str.substring(rest, 2))
             string tok = str.match(rest, "^\\S+")
             int lvl = levelOf(tok)
             if lvl >= 0
                 rest := str.trim(str.substring(rest, str.length(tok)))
             else
                 lvl := 3
-            int t = timestamp(tz, int(str.tonumber(ymd.get(0))), int(str.tonumber(ymd.get(1))), int(str.tonumber(ymd.get(2))), hh, mi, 0)
-            if not na(t)
+            // Reject impossible dates and times instead of letting timestamp() roll them over.
+            bool valid = mo >= 1 and mo <= 12 and dd >= 1 and dd <= 31 and hh <= 23 and mi <= 59
+            int t = valid ? timestamp(tz, yy, mo, dd, hh, mi, 0) : na
+            if not na(t) and str.format_time(t, "yyyy-M-d", tz) == str.tostring(yy) + "-" + str.tostring(mo) + "-" + str.tostring(dd)
                 ev := NewsEvent.new(t, lvl, rest == "" ? "自定义事件" : rest, "", "", "", "", hm == "" or lvl == 0, false)
     ev
 
@@ -228,6 +247,7 @@ var array<int>       clLevel  = array.new<int>()
 var array<int>       clFirst  = array.new<int>()   // index into `events`
 var array<float>     clY      = array.new<float>() // bar high at release, for the label
 var map<string, string> ZH    = map.new<string, string>()
+var int              embeddedCount = 0
 
 levelShown(int lvl) =>
     lvl == 3 ? showHigh : lvl == 2 ? showMed : lvl == 1 ? showLow : showHol
@@ -241,10 +261,15 @@ postOf(NewsEvent e) =>
     e.major ? math.max(base, postMajor) : base
 
 if barstate.isfirst
-    string ccyList = "," + str.upper(str.replace_all(currencyIn, " ", "")) + ","
-    array<string> majorKeys = str.split(str.lower(majorIn), "|")
+    string ccyList = "," + CCY + ","
+    array<string> majorKeys = array.new<string>()
+    for k in str.split(str.lower(majorIn), "|")
+        if str.trim(k) != ""
+            majorKeys.push(str.trim(k))
     array<NewsEvent> raw = array.new<NewsEvent>()
-    for s in ffEmbeddedData()
+    array<string> embedded = ffEmbeddedData()
+    embeddedCount := embedded.size()
+    for s in embedded
         NewsEvent e = parseFF(s, ccyList)
         if not na(e)
             raw.push(e)
@@ -258,17 +283,17 @@ if barstate.isfirst
         if not na(e)
             raw.push(e)
 
-    // De-duplicate (same time + title) and sort by time, keeping the feed's order
-    // within one release time (the index breaks ties).
+    // De-duplicate (same time + currency + title) and sort by time. Within one release
+    // time the most important item comes first (⭐, then impact), then the feed's order.
     map<string, bool> seen = map.new<string, bool>()
     array<NewsEvent> uniq = array.new<NewsEvent>()
     array<float> sortKey = array.new<float>()
     for e in raw
-        string key = str.tostring(e.t) + "|" + e.title
+        string key = str.tostring(e.t) + "|" + e.currency + "|" + e.title
         if levelShown(e.level) and not seen.contains(key)
             seen.put(key, true)
             e.major := e.level > 0 and isMajor(e.title, majorKeys)
-            sortKey.push(e.t * 1000.0 + uniq.size() % 1000)
+            sortKey.push(e.t * 1000.0 + (e.major ? 0 : 400) + (3 - e.level) * 100 + uniq.size() % 100)
             uniq.push(e)
     if uniq.size() > 0
         for i in sortKey.sort_indices(order.ascending)
@@ -335,10 +360,14 @@ if barstate.isfirst
     ZH.put("FOMC Economic Projections", "FOMC 经济预测")
     ZH.put("FOMC Meeting Minutes", "FOMC 会议纪要")
     ZH.put("Beige Book", "美联储褐皮书")
-    ZH.put("Advance GDP q/q", "GDP 季率初值")
-    ZH.put("Prelim GDP q/q", "GDP 季率修正值")
-    ZH.put("Final GDP q/q", "GDP 季率终值")
+    ZH.put("Advance GDP q/q", "GDP 年化季率初值")
+    ZH.put("Prelim GDP q/q", "GDP 年化季率修正值")
+    ZH.put("Final GDP q/q", "GDP 年化季率终值")
     ZH.put("Advance GDP Price Index q/q", "GDP 平减指数初值")
+    ZH.put("Prelim GDP Price Index q/q", "GDP 平减指数修正值")
+    ZH.put("Final GDP Price Index q/q", "GDP 平减指数终值")
+    ZH.put("Personal Income m/m", "个人收入月率")
+    ZH.put("Personal Spending m/m", "个人支出月率")
     ZH.put("Retail Sales m/m", "零售销售月率")
     ZH.put("Core Retail Sales m/m", "核心零售销售月率")
     ZH.put("ISM Manufacturing PMI", "ISM 制造业 PMI")
@@ -378,6 +407,8 @@ if barstate.isfirst
     ZH.put("S&P/CS Composite-20 HPI y/y", "标普/CS 20 城房价年率")
     ZH.put("Prelim Nonfarm Productivity q/q", "非农生产率初值")
     ZH.put("Prelim Unit Labor Costs q/q", "单位劳工成本初值")
+    ZH.put("Revised Nonfarm Productivity q/q", "非农生产率修正值")
+    ZH.put("Revised Unit Labor Costs q/q", "单位劳工成本修正值")
     ZH.put("Crude Oil Inventories", "EIA 原油库存")
     ZH.put("Natural Gas Storage", "EIA 天然气库存")
     ZH.put("10-y Bond Auction", "10 年期国债拍卖")
@@ -385,17 +416,23 @@ if barstate.isfirst
     ZH.put("Bank Holiday", "银行假日")
 
 // ═══ Per-bar state ═══════════════════════════════════════════════════════════
-int barEnd = na(time_close) ? time + timeframe.in_seconds() * 1000 : time_close
+// Renko, range and tick charts have no time_close for the open realtime bar;
+// judge that bar by the current time instead.
+bool openEnded = na(time_close) and barstate.isrealtime
+int  barStart  = openEnded ? math.max(time, timenow) : time
+int  barEnd    = openEnded ? barStart + 1 : nz(time_close, time + timeframe.in_seconds() * 1000)
 
 // Merged windows are disjoint and sorted, so one forward-moving pointer is enough.
 var int wPtr = 0
-while wPtr < winStart.size() and winEnd.get(wPtr) <= time
+while wPtr < winStart.size() and winEnd.get(wPtr) <= barStart
     wPtr += 1
 bool inWinBar = wPtr < winStart.size() and winStart.get(wPtr) < barEnd
 int  winLvl   = inWinBar ? winLevel.get(wPtr) : -1
 
 var int cPtr = 0
 while cPtr < clTime.size() and clTime.get(cPtr) < time
+    if na(clY.get(cPtr))    // released while there were no bars (session gap): pin to this bar
+        clY.set(cPtr, high)
     cPtr += 1
 int j = cPtr
 while j < clTime.size() and clTime.get(j) < barEnd
@@ -413,8 +450,9 @@ bgcolor(shadeOn and inWinBar ? color.new(levelColor(winLvl), shadeTr) : na, titl
 plot(inWinBar ? 1 : 0, "USD news window (1 = inside)", display = display.data_window, editable = false)
 plot(minsToNext, "Minutes to next USD news", display = display.data_window, editable = false)
 
-alertcondition(inWinBar and not inWinBar[1], "USD 新闻窗口开始", "{{ticker}}: USD 新闻窗口开始，暂停交易")
-alertcondition(not inWinBar and inWinBar[1], "USD 新闻窗口结束", "{{ticker}}: USD 新闻窗口结束")
+bool inAlertWin = inWinBar and winLvl >= alertMin
+alertcondition(inAlertWin and not inAlertWin[1], "USD 新闻窗口开始", "{{ticker}}: USD 新闻窗口开始，暂停交易")
+alertcondition(not inAlertWin and inAlertWin[1], "USD 新闻窗口结束", "{{ticker}}: USD 新闻窗口结束")
 
 // ═══ Formatting helpers ══════════════════════════════════════════════════════
 var array<string> DAYS = array.from("周日", "周一", "周二", "周三", "周四", "周五", "周六")
@@ -428,6 +466,10 @@ dayName(int t) =>
 fmtWhen(int t, bool allDay) =>
     string day = dayName(t) + " " + str.format_time(t, "MM-dd", TZ)
     allDay ? day + " 全天" : day + " " + str.format_time(t, "HH:mm", TZ)
+
+// Rated items without a fixed time are "tentative": they can land any time that day.
+whenText(NewsEvent e) =>
+    e.allDay and e.level > 0 ? fmtWhen(e.t, true) + "/待定" : fmtWhen(e.t, e.allDay)
 
 fmtDur(int ms) =>
     int m = int(math.ceil(ms / 60000.0))
@@ -446,8 +488,9 @@ titleOf(string title) =>
     string out = title
     if langIn != "English"
         string zh = ZH.get(title)
-        if na(zh) and str.endswith(title, " Speaks")
-            zh := str.replace_all(title, " Speaks", " 讲话")
+        if na(zh) and (str.endswith(title, " Speaks") or str.endswith(title, " Testifies"))
+            zh := str.replace_all(str.replace_all(title, " Speaks", " 讲话"), " Testifies", " 国会作证")
+            zh := str.replace(zh, "Fed Vice Chair for Supervision ", "美联储负责监管的副主席 ", 0)
             zh := str.replace(zh, "Fed Chair ", "美联储主席 ", 0)
             zh := str.replace(zh, "Fed Vice Chair ", "美联储副主席 ", 0)
             zh := str.replace(zh, "FOMC Member ", "FOMC 委员 ", 0)
@@ -457,6 +500,10 @@ titleOf(string title) =>
         if not na(zh)
             out := langIn == "中文" ? zh : zh + " " + title
     out
+
+// Event name as shown; with several currencies the currency code goes first.
+evName(NewsEvent e) =>
+    (multiCcy and e.currency != "" ? e.currency + " " : "") + titleOf(e.title)
 
 levelDot(int lvl) =>
     lvl == 3 ? "🔴" : lvl == 2 ? "🟠" : lvl == 1 ? "🟡" : "⚪"
@@ -509,9 +556,15 @@ if barstate.islast
         lb.delete()
     drawnLabels.clear()
 
-    int fromT = timenow - lookback * 86400000
+    int fromT = NOW - lookback * 86400000
+    // Labels of releases close together are stacked on up to three levels.
+    int gap   = math.max(timeframe.in_seconds(), 60) * 1000 * 30
+    int stack = 0
+    int prevT = na
     for [ci, ct] in clTime
         if ct >= fromT
+            stack := not na(prevT) and ct - prevT < gap ? (stack + 1) % 3 : 0
+            prevT := ct
             int   lvl = clLevel.get(ci)
             color c   = levelColor(lvl)
             if doLines
@@ -525,16 +578,16 @@ if barstate.islast
                 while k < events.size() and events.get(k).t == ct
                     NewsEvent e = events.get(k)
                     if not e.allDay
-                        tip += "\n" + levelDot(e.level) + " " + titleOf(e.title) + fcstText(e)
+                        tip += "\n" + levelDot(e.level) + " " + evName(e) + fcstText(e)
                         if labelMode == "详细" or shown == 0
-                            txt += "\n" + levelDot(e.level) + " " + titleOf(e.title) + (labelMode == "详细" ? fcstText(e) : "")
+                            txt += "\n" + levelDot(e.level) + " " + evName(e) + (labelMode == "详细" ? fcstText(e) : "")
                             shown += 1
                         else
                             more += 1
                     k += 1
                 if more > 0
                     txt += "  +" + str.tostring(more)
-                float y = na(clY.get(ci)) ? refHigh + pad : clY.get(ci) + pad * 0.5
+                float y = (na(clY.get(ci)) ? refHigh + pad : clY.get(ci) + pad * 0.5) + stack * pad * 2
                 drawnLabels.push(label.new(ct, y, txt, xloc.bar_time, yloc.price, c, label.style_label_down, lvl <= 1 ? color.black : color.white, labelSize, text.align_left, tip))
     if doWinLines
         for [wi, ws] in winStart
@@ -557,7 +610,7 @@ tablePosition(string p) =>
 var table tbl = na
 
 if barstate.islast and showTable
-    int  nowT  = timenow
+    int  nowT  = NOW
     int  nCols = showFcst ? 6 : 4
     color bg     = color.new(#131722, 5)
     color fg     = color.new(#D1D4DC, 0)
@@ -567,27 +620,35 @@ if barstate.islast and showTable
     tbl := table.new(tablePosition(tablePos), nCols, tableRows + 4, bgcolor = bg, frame_color = color.new(#363A45, 0), frame_width = 1, border_color = color.new(#2A2E39, 0), border_width = 1)
 
     // Row 0: title.
-    tbl.cell(0, 0, str.upper(str.replace_all(currencyIn, " ", "")) + " 新闻 · Forex Factory", text_color = fg, text_size = tableSize, text_halign = text.align_left)
+    tbl.cell(0, 0, CCY + " 新闻 · Forex Factory", text_color = fg, text_size = tableSize, text_halign = text.align_left)
     tbl.merge_cells(0, 0, nCols - 1, 0)
 
     // Row 1: can I trade right now?
+    int future = 0
+    for e in events
+        if e.t > nowT
+            future += 1
     int    wNow = windowAt(nowT)
     int    wNext = windowAfter(nowT)
     string status = ""
     color  statusBg = color.new(#089981, 20)
     if events.size() == 0
-        status   := "⚠️ 还没有数据：把 Forex Factory JSON 粘贴到设置里，或运行 ff_usd_news.py"
+        status   := embeddedCount > 0 ? "⚠️ 内置数据的货币是 " + FF_CURRENCIES + "，和「货币」设置（" + CCY + "）不一致，请改成相同的值" : "⚠️ 还没有数据：把 Forex Factory JSON 粘贴到设置里，或运行 ff_usd_news.py"
         statusBg := color.new(#FF9800, 20)
     else if wNow >= 0
         status   := "⛔ 新闻窗口中，暂停交易 · 至 " + str.format_time(winEnd.get(wNow), "HH:mm", TZ) + "（还剩 " + fmtDur(winEnd.get(wNow) - nowT) + "）"
         statusBg := color.new(levelColor(winLevel.get(wNow)), 20)
+    else if future == 0
+        // Everything loaded is in the past: nothing is known about what comes next.
+        status   := "⚠️ 已加载的新闻都已过去，后面有没有新闻未知 · 新一周数据出来后请更新"
+        statusBg := color.new(#FF9800, 20)
     else if wNext >= 0 and winStart.get(wNext) - nowT <= alertLead * 60000
         status   := "⚠️ " + fmtDur(winStart.get(wNext) - nowT) + "后进入新闻窗口（" + str.format_time(winStart.get(wNext), "HH:mm", TZ) + "–" + str.format_time(winEnd.get(wNext), "HH:mm", TZ) + "）"
         statusBg := color.new(#FF9800, 20)
     else if wNext >= 0
         status   := "✅ 可交易 · 下个窗口 " + fmtWhen(winStart.get(wNext), false) + "（" + fmtDur(winStart.get(wNext) - nowT) + "后）"
     else
-        status   := "✅ 可交易 · 已无后续新闻窗口"
+        status   := "✅ 可交易 · 已加载的数据里没有后续新闻窗口"
     tbl.cell(0, 1, status, text_color = color.white, bgcolor = statusBg, text_size = tableSize, text_halign = text.align_left)
     tbl.merge_cells(0, 1, nCols - 1, 1)
 
@@ -598,17 +659,14 @@ if barstate.islast and showTable
 
     // Upcoming events (kept until their window ends).
     int row = 3
-    int future = 0
     for e in events
         int endT = e.allDay ? e.t + 86400000 : e.t + math.max(postOf(e), 1) * 60000
-        if e.t > nowT
-            future += 1
         if endT > nowT and row < tableRows + 3
             bool live = e.t <= nowT
             color c = levelColor(e.level)
-            tbl.cell(0, row, fmtWhen(e.t, e.allDay), text_color = live ? color.white : fg, bgcolor = live ? color.new(c, 40) : na, text_size = tableSize, text_halign = text.align_left)
+            tbl.cell(0, row, whenText(e), text_color = live ? color.white : fg, bgcolor = live ? color.new(c, 40) : na, text_size = tableSize, text_halign = text.align_left)
             tbl.cell(1, row, levelName(e.level), text_color = e.level <= 1 ? color.black : color.white, bgcolor = color.new(c, 0), text_size = tableSize)
-            tbl.cell(2, row, (e.major ? "⭐ " : "") + titleOf(e.title), text_color = fg, text_size = tableSize, text_halign = text.align_left)
+            tbl.cell(2, row, (e.major ? "⭐ " : "") + evName(e), text_color = fg, text_size = tableSize, text_halign = text.align_left)
             if showFcst
                 tbl.cell(3, row, e.forecast, text_color = fg, text_size = tableSize)
                 tbl.cell(4, row, e.previous, text_color = dim, text_size = tableSize)
@@ -624,28 +682,34 @@ if barstate.islast and showTable
         foot += " · 更新于 " + FF_UPDATED
     color footColor = dim
     if events.size() > 0 and future == 0
-        foot := "⚠️ 没有未来的新闻数据，请更新（粘贴本周 JSON 或运行 ff_usd_news.py）· " + foot
+        foot := "⚠️ 数据已用完 · " + foot
         footColor := color.new(#FF9800, 0)
     tbl.cell(0, row, foot, text_color = footColor, text_size = size.tiny, text_halign = text.align_left)
     tbl.merge_cells(0, row, nCols - 1, row)
 
 // ═══ Alerts (realtime) ═══════════════════════════════════════════════════════
-int alertMin = alertLvl == "高" ? 3 : alertLvl == "中" ? 2 : 1
-varip int lastWarned = 0    // release time already announced
-varip int lastWin    = -2   // window index at the previous tick (-1 = outside)
+// An alert keeps the script version and inputs it was created with, so it
+// never sees later data updates; it says so once its data has run out.
+varip int  lastWarned  = 0      // release time already announced
+varip int  lastWin     = -2     // window index at the previous tick (-1 = outside)
+varip bool staleWarned = false
 
 if barstate.isrealtime
     int nowT = timenow
-    // Heads-up before the next important release.
+    // Heads-up N minutes before the no-trade window of the next important release.
     for [ci, ct] in clTime
         if ct > nowT and clLevel.get(ci) >= alertMin
-            if ct - nowT <= alertLead * 60000 and lastWarned != ct
-                string msg = syminfo.ticker + " · " + fmtDur(ct - nowT) + "后 USD 新闻（" + fmtWhen(ct, false) + "）："
+            int wi = windowAt(ct)
+            if wi < 0
+                wi := windowAt(ct - 1)    // post = 0: the window ends exactly at the release
+            int ws = wi >= 0 ? math.min(winStart.get(wi), ct) : ct
+            if ws - nowT <= alertLead * 60000 and lastWarned != ct
+                string msg = syminfo.ticker + " · " + (ws > nowT ? fmtDur(ws - nowT) + "后进入 USD 新闻窗口（" + str.format_time(ws, "HH:mm", TZ) + " 起），" + fmtWhen(ct, false) + " 公布：" : fmtDur(ct - nowT) + "后公布 USD 新闻（" + fmtWhen(ct, false) + "）：")
                 int k = clFirst.get(ci)
                 while k < events.size() and events.get(k).t == ct
                     NewsEvent e = events.get(k)
                     if not e.allDay
-                        msg += "\n" + levelDot(e.level) + " " + titleOf(e.title) + fcstText(e)
+                        msg += "\n" + levelDot(e.level) + " " + evName(e) + fcstText(e)
                     k += 1
                 alert(msg, alert.freq_all)
                 lastWarned := ct
@@ -658,3 +722,7 @@ if barstate.isrealtime
         else if wNow < 0 and lastWin >= 0 and winLevel.get(lastWin) >= alertMin
             alert(syminfo.ticker + " · ✅ USD 新闻窗口结束，可以交易", alert.freq_all)
     lastWin := wNow
+    // Data used up (or never loaded) in this alert: after the last release and its window.
+    if not staleWarned and (clTime.size() == 0 or (clTime.last() <= nowT and wNow < 0))
+        alert(syminfo.ticker + " · ⚠️ 这个警报里的新闻数据已经用完" + (clTime.size() > 0 ? "（数据至 " + str.format_time(clTime.last(), "MM-dd", TZ) + "）" : "") + "。新一周数据出来后请更新数据，然后删除并重新创建警报。", alert.freq_all)
+        staleWarned := true
