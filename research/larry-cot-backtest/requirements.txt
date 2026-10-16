@@ -1,0 +1,6 @@
+# Python >= 3.11 (pandas 3 needs it). Published results were produced with Python 3.13.16,
+# pandas 3.0.5, numpy 2.5.3, scipy 1.18.1, statsmodels 0.15.0.
+pandas>=3.0
+numpy>=2.0
+scipy>=1.11          # lenses/robustness (scipy.stats)
+statsmodels>=0.14    # lenses/comparators (OLS, Newey-West, multipletests)
