@@ -15,7 +15,7 @@ from sepa.fundamentals import analyze_fundamentals
 from sepa.indicators import sma, weekly
 from sepa.rs import percentile_ratings, rs_line, weighted_performance
 from sepa.trend import trend_template, weinstein_stage
-from sepa.vcp import analyze_entry, detect_base
+from sepa.vcp import _zigzag, analyze_entry, detect_base
 
 CFG = Config()
 
@@ -215,12 +215,37 @@ class FundamentalsTests(unittest.TestCase):
         self.assertIsNone(result["core_pass"])
         self.assertEqual(result["missing"], ["E1", "E2", "E3", "E4"])
 
-    def test_asof_hides_later_quarters(self):
+    def test_asof_without_report_date_waits_for_the_filing_lag(self):
         data = fundamentals(
             eps=[1.0] * 4 + [1.2, 1.25, 1.35, 1.5], revenue=[100] * 8, net_income=[10] * 8,
         )
-        result = analyze_fundamentals(data, CFG.fundamentals, asof=quarter_ends(8)[6])
-        self.assertEqual(result["history"][-1]["period_end"], quarter_ends(8)[6])
+        ends = quarter_ends(8)
+        # On the day a quarter closes its results are not public yet.
+        result = analyze_fundamentals(data, CFG.fundamentals, asof=ends[6])
+        self.assertEqual(result["history"][-1]["period_end"], ends[5])
+        public = (date.fromisoformat(ends[6]) + timedelta(days=45)).isoformat()
+        result = analyze_fundamentals(data, CFG.fundamentals, asof=public)
+        self.assertEqual(result["history"][-1]["period_end"], ends[6])
+
+    def test_asof_uses_the_report_date_when_given(self):
+        data = fundamentals(eps=[1.0] * 4 + [1.2, 1.25, 1.35, 1.5], revenue=[100] * 8, net_income=[10] * 8)
+        ends = quarter_ends(8)
+        data["quarters"][6]["reported"] = (date.fromisoformat(ends[6]) + timedelta(days=20)).isoformat()
+        asof = (date.fromisoformat(ends[6]) + timedelta(days=25)).isoformat()
+        result = analyze_fundamentals(data, CFG.fundamentals, asof=asof)
+        self.assertEqual(result["history"][-1]["period_end"], ends[6])
+
+    def test_guidance_needs_a_date_when_backtesting(self):
+        data = fundamentals(eps=[1.0] * 8, revenue=[100] * 8, net_income=[10] * 8, guidance="raised")
+        latest = analyze_fundamentals(data, CFG.fundamentals)
+        self.assertTrue(latest["checks"][5]["pass"])
+        backtest = analyze_fundamentals(data, CFG.fundamentals, asof="2030-01-01")
+        self.assertIsNone(backtest["checks"][5]["pass"])
+        data["guidance_date"] = "2029-12-01"
+        self.assertTrue(analyze_fundamentals(data, CFG.fundamentals, asof="2030-01-01")["checks"][5]["pass"])
+
+    def test_null_quarters_do_not_crash(self):
+        self.assertIsNone(analyze_fundamentals({"quarters": None}, CFG.fundamentals)["core_pass"])
 
 
 class VCPTests(unittest.TestCase):
@@ -265,12 +290,55 @@ class VCPTests(unittest.TestCase):
         bars = build(UPTREND + VCP_BASE + [(1, 95, 3_000_000), (2, 93, 900_000)])
         self.assertEqual(analyze_entry(bars, CFG.vcp)["status"], "failed_breakout")
 
-    def test_deep_failed_breakout_is_flagged(self):
+    def test_deep_failed_breakout_is_not_a_fresh_setup(self):
+        # The reversal re-forms a base under the breakout high, but a close back under
+        # the pivot is a failed breakout, not a new buy signal.
         bars = build(UPTREND + VCP_BASE + [(1, 95, 3_000_000), (3, 90, 900_000)])
         entry = analyze_entry(bars, CFG.vcp)
-        self.assertIn(entry["status"], ("failed_breakout", "forming", "near_pivot"))
-        if entry["status"] != "failed_breakout":
-            self.assertTrue(any("failed breakout" in w for w in entry.get("warnings", [])), entry)
+        self.assertEqual(entry["status"], "failed_breakout")
+        self.assertFalse(entry["actionable"])
+        self.assertAlmostEqual(entry["pivot"], 93 * 1.005, places=2)
+        self.assertTrue(any("new pivot forming" in w for w in entry["warnings"]), entry)
+
+    def test_close_under_the_stop_is_stopped_out(self):
+        bars = build(UPTREND + VCP_BASE + [(1, 95, 3_000_000), (4, 86, 900_000)])
+        self.assertEqual(analyze_entry(bars, CFG.vcp)["status"], "stopped_out")
+
+    def test_breakout_from_unconfirmed_final_contraction_keeps_its_pivot(self):
+        # The last pullback (93 -> 89.8) never rallied enough to confirm its low before
+        # the breakout bar cleared its high; that bar must not erase the contraction.
+        base = VCP_BASE[:-1] + [(2, 89.8, 450_000)]
+        day1 = analyze_entry(build(UPTREND + base + [(1, 95, 3_000_000)]), CFG.vcp)
+        self.assertEqual(day1["status"], "breakout", day1)
+        self.assertAlmostEqual(day1["pivot"], 93 * 1.005, places=2)
+        day3 = analyze_entry(build(UPTREND + base + [(1, 95, 3_000_000), (2, 99, 1_100_000)]), CFG.vcp)
+        self.assertEqual(day3["status"], "extended", day3)
+        self.assertFalse(day3["actionable"])
+
+    def test_zigzag_never_pairs_a_swing_with_itself(self):
+        pivots, _, _ = _zigzag([92, 100, 97, 96, 101, 100.5, 100], [90, 98, 95, 94.5, 95.5, 99, 98.8], 0, 7, 0.03)
+        indexes = [i for i, _ in pivots]
+        self.assertEqual(len(indexes), len(set(indexes)), pivots)
+        self.assertEqual([kind for _, kind in pivots], ["L", "H", "L"])
+
+    def test_pullback_inside_buy_range_after_breakout_is_still_a_breakout(self):
+        bars = build(UPTREND + VCP_BASE + [(1, 95, 3_000_000), (2, 97.5, 1_500_000), (2, 94.5, 800_000)])
+        entry = analyze_entry(bars, CFG.vcp)
+        self.assertEqual(entry["status"], "breakout", entry)
+        self.assertAlmostEqual(entry["pivot"], 93 * 1.005, places=2)
+
+    def test_heavy_volume_on_a_later_close_confirms_the_breakout(self):
+        bars = build(UPTREND + VCP_BASE + [(1, 93.6, 450_000), (1, 96, 3_000_000)])
+        entry = analyze_entry(bars, CFG.vcp)
+        self.assertEqual(entry["status"], "breakout", entry)
+        self.assertEqual(entry["volume_confirmed_on"], bars.dates[-1])
+
+    def test_base_after_a_deep_decline_starts_at_the_current_advance(self):
+        # Peak at 150 more than a year back, a fall to 60, a new advance to 100, then a VCP.
+        bars = build([(150, 150, 1_000_000), (150, 60, 1_000_000), (200, 100, 1_000_000)] + SHALLOW_VCP, start=80)
+        entry = analyze_entry(bars, CFG.vcp)
+        self.assertEqual(entry["status"], "near_pivot", entry.get("reasons"))
+        self.assertLess(entry["base"]["base_high"], 105)
 
     def test_lower_low_merges_into_one_correction(self):
         # 100 -> 90, 98 -> 80: the undercut makes it one 20% correction, not a VCP.
@@ -294,7 +362,7 @@ class VCPTests(unittest.TestCase):
     def test_at_new_highs_there_is_no_base(self):
         base = detect_base(build(UPTREND), 251, CFG.vcp)
         self.assertFalse(base["valid"])
-        self.assertIn("at or near highs", base["reasons"][0])
+        self.assertIn("0 bar(s) since the high", base["reasons"][0])
 
     def test_rally_dip_is_not_counted_as_contraction(self):
         # 100 -> 75, rally to 88 with a 3.5% dip at 85, then 95 -> 86 -> 93 -> 89 -> 92.
@@ -368,10 +436,118 @@ class DataAndCliTests(unittest.TestCase):
                 main(["scan", "--data-dir", tmp])
             self.assertIn("VCP", table.getvalue())
 
+    def _data_dir(self, tmp):
+        os.makedirs(os.path.join(tmp, "prices"))
+        os.makedirs(os.path.join(tmp, "fundamentals"))
+        write_csv(os.path.join(tmp, "prices", "vcp.csv"), build(LONG_UPTREND + SHALLOW_VCP, start=40))
+        write_csv(os.path.join(tmp, "prices", "BAD.csv"), build(LONG_UPTREND, start=40))
+        with open(os.path.join(tmp, "fundamentals", "vcp.json"), "w") as fh:
+            json.dump(fundamentals(eps=[1.0] * 4 + [1.2, 1.25, 1.35, 1.5],
+                                   revenue=[100] * 4 + [110, 112, 118, 125],
+                                   net_income=[10] * 4 + [12, 12.5, 13.5, 15]), fh)
+        with open(os.path.join(tmp, "fundamentals", "BAD.json"), "w") as fh:
+            fh.write("{not json")
+
+    def _scan_json(self, argv):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            main(argv + ["--json"])
+        return json.loads(out.getvalue())
+
+    def test_lowercase_files_bad_fundamentals_and_asof_formats(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._data_dir(tmp)
+            report = self._scan_json(["scan", "--data-dir", tmp])
+            by_ticker = {r["ticker"]: r for r in report["results"]}
+            self.assertEqual(by_ticker["VCP"]["pillars"]["earnings"], "pass")  # vcp.json found
+            self.assertNotIn("BAD", by_ticker)  # broken JSON is reported, not fatal
+            self.assertIn("BAD", report["errors"])
+
+            iso = self._scan_json(["scan", "--data-dir", tmp, "--asof", "2023-06-30"])
+            compact = self._scan_json(["scan", "--data-dir", tmp, "--asof", "20230630"])
+            self.assertEqual(iso["asof"], "2023-06-30")
+            self.assertEqual([r["last_date"] for r in iso["results"]],
+                             [r["last_date"] for r in compact["results"]])
+            self.assertTrue(all(r["last_date"] <= "2023-06-30" for r in iso["results"]))
+            for bad in (["--asof", "2023-6-30"], ["--rs", "VCP=abc"], ["--rs", "VCP=nan"], ["--rs", "VCP=120"]):
+                with self.assertRaises(SystemExit), contextlib.redirect_stdout(io.StringIO()):
+                    main(["scan", "--data-dir", tmp] + bad)
+
     def test_config_rejects_unknown_keys(self):
         with self.assertRaises(ValueError):
             Config.from_dict({"trend": {"nope": 1}})
         self.assertEqual(Config.from_dict({"trend": {"min_above_low": 0.25}}).trend.min_above_low, 0.25)
+
+
+try:
+    import pandas as pd
+except ImportError:  # the engine itself needs no third-party packages
+    pd = None
+
+
+@unittest.skipUnless(pd is not None, "pandas not installed")
+class FetchMergeTests(unittest.TestCase):
+    """fundamentals_from_frames on frames shaped like yfinance's (newest column first)."""
+
+    def income(self, ends, rows):
+        frame = pd.DataFrame(rows, index=[pd.Timestamp(e) for e in ends]).T
+        return frame
+
+    def earnings(self, rows):
+        index = pd.DatetimeIndex([pd.Timestamp(d, tz="America/New_York") for d, _, _ in rows],
+                                 name="Earnings Date")
+        return pd.DataFrame({"EPS Estimate": [e for _, e, _ in rows],
+                             "Reported EPS": [r for _, _, r in rows],
+                             "Surprise(%)": [None] * len(rows)}, index=index)
+
+    def test_fallback_row_labels(self):
+        from sepa.fetch import fundamentals_from_frames
+        nan = float("nan")
+        income = self.income(["2025-06-30"], {"Total Revenue": [nan], "Operating Revenue": [100.0],
+                                             "Diluted EPS": [nan], "Basic EPS": [0.5]})
+        merged = fundamentals_from_frames(income, None, today=date(2025, 9, 1))
+        q = merged["quarters"][0]
+        self.assertEqual((q["revenue"], q["eps"], merged["eps_basis"]), (100.0, 0.5, "gaap_diluted"))
+
+    def test_reports_beyond_the_income_statement_still_line_up_year_over_year(self):
+        from sepa.fetch import fundamentals_from_frames
+        ends = quarter_ends(9)  # 2023-03-31 .. 2025-03-31
+        eps = [1.0, 1.0, 1.0, 1.0, 1.2, 1.25, 1.35, 1.5, 1.9]
+        income = self.income(list(reversed(ends[-5:])), {
+            "Total Revenue": [200.0, 190, 180, 170, 160], "Diluted EPS": [0.9] * 5,
+            "Net Income": [20.0] * 5})
+        reports = [((date.fromisoformat(e) + timedelta(days=45)).isoformat(), None, v)
+                   for e, v in zip(ends, eps)]
+        reports.append(("2025-08-14", 2.0, float("nan")))  # upcoming: skipped
+        reports.append(("2025-08-20", None, float("nan")))
+        merged = fundamentals_from_frames(income, self.earnings(list(reversed(reports))),
+                                          today=date(2025, 7, 1))
+        self.assertEqual(merged["eps_basis"], "reported")
+        self.assertEqual(len(merged["quarters"]), 9)
+        self.assertTrue(all(q.get("reported") for q in merged["quarters"]))
+        result = analyze_fundamentals(merged, CFG.fundamentals)
+        checks = {c["id"]: c["pass"] for c in result["checks"]}
+        self.assertTrue(checks["E1"])
+        self.assertTrue(checks["E2"])  # needs the year-ago match of estimated period ends
+
+    def test_past_report_without_eps_is_not_filled_with_gaap(self):
+        from sepa.fetch import fundamentals_from_frames
+        income = self.income(["2025-06-30", "2024-06-30"], {"Diluted EPS": [0.1, 0.08],
+                                                            "Total Revenue": [10.0, 9.0]})
+        earnings = self.earnings([("2025-08-10", None, float("nan")), ("2024-08-14", 0.17, 0.18)])
+        merged = fundamentals_from_frames(income, earnings, today=date(2025, 9, 1))
+        latest = merged["quarters"][-1]
+        self.assertEqual(latest["reported"], "2025-08-10")
+        self.assertIsNone(latest["eps"])  # not the GAAP 0.1 mixed with adjusted 0.18
+        self.assertEqual(latest["eps_gaap"], 0.1)
+
+    def test_prices_to_rows(self):
+        from sepa.fetch import prices_to_rows
+        index = pd.DatetimeIndex([pd.Timestamp("2025-01-02", tz="America/New_York"),
+                                  pd.Timestamp("2025-01-03", tz="America/New_York")])
+        frame = pd.DataFrame({"Open": [1.0, 2.0], "High": [1.5, 2.5], "Low": [0.5, 1.5],
+                              "Close": [float("nan"), 2.2], "Volume": [10, 20]}, index=index)
+        self.assertEqual(prices_to_rows(frame), [["2025-01-03", 2.0, 2.5, 1.5, 2.2, 20.0]])
 
 
 if __name__ == "__main__":

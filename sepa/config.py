@@ -53,6 +53,9 @@ class FundamentalsConfig:
     min_revenue_growth: float = 0.0  # revenue must at least grow while accelerating
     yoy_min_days: int = 330  # period ends this far apart count as the same quarter a year ago
     yoy_max_days: int = 400
+    # With --asof, a quarter without a "reported" date is treated as public this
+    # many days after its period end (10-Qs are due within 40-45 days).
+    report_lag_days: int = 45
 
 
 @dataclass

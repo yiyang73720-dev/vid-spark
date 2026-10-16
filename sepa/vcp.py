@@ -1,23 +1,31 @@
 """Pillar S: Volatility Contraction Pattern (VCP) detection and pivot entry status.
 
-A base starts at the highest high of the look-back window. Its first
-contraction runs from that high to the lowest low that follows. Swings after
-that low are found with a percentage zigzag whose threshold scales with the
-stock's volatility, and every swing high -> swing low leg is one further
-contraction. A leg that is deeper than the one before it but starts from a
-*higher* high is a dip in the rally off the lows, not a contraction, and is
-dropped. The pivot is the high of the final contraction; its low is the stop.
+A base starts at the top of the latest advance: the highest high of the
+look-back window, unless a decline deeper than ``max_first_depth`` (or the
+window edge) separates it from the current advance, in which case the search
+restarts after that decline's low. The first contraction runs from the base
+high to the lowest low that follows. Swings after that low are found with a
+percentage zigzag whose threshold scales with the stock's volatility, and
+every swing high -> swing low leg is one further contraction. A leg that is
+deeper than the one before it but starts from a *higher* high is a dip in the
+rally off the lows, not a contraction, and is dropped. The pivot is the high
+of the final contraction; its low is the stop.
 
 Entry status (``analyze_entry``):
     forming               valid VCP, price more than ``near_pivot`` below the pivot
     near_pivot            valid VCP, price within ``near_pivot`` of the pivot: set a buy-stop
-    breakout              closed above the pivot on >= breakout_volume_ratio x average
-                          volume and still within ``max_chase`` of it: buyable
-    breakout_unconfirmed  closed above the pivot on light volume
+    breakout              closed above the pivot, a close above it came on >=
+                          breakout_volume_ratio x its prior 50-day average volume,
+                          and price is still within ``max_chase`` of the pivot: buyable
+    breakout_unconfirmed  above the pivot, but never on enough volume
     extended              more than ``max_chase`` above the pivot: do not chase
     failed_breakout       broke out, then closed back below the pivot
     stopped_out           broke out, then closed below the final contraction low
     no_base               no valid VCP (see ``reasons``)
+
+Once a base has been broken out of (within ``breakout_scan_bars``), later
+action is judged against that base's pivot; a new base forming above it shows
+up in ``warnings`` until price is past the buy range.
 """
 
 from .indicators import argmax, argmin, mean, median, rnd, true_range_pct
@@ -30,15 +38,26 @@ def _zigzag(high, low, start, end, threshold):
     pairs; ``direction`` is the leg in progress at ``end`` ("up" or "down") and
     ``extreme`` the index of that leg's running high or low.
     """
-    # A bar that sets a new extreme never also confirms the reversal: daily bars
-    # don't say whether the high or the low came first, so a single wide bar
-    # must not create a swing on its own.
+    # A swing is always confirmed at an earlier bar than the one that confirms
+    # it: daily bars don't say whether the high or the low came first, so one
+    # wide bar must not create a swing on its own.
+    #
+    # Every confirmed swing high was confirmed by a drop of at least
+    # ``threshold``, so a later bar that clears it also completes a rise of at
+    # least ``threshold`` off the running low: that low becomes a swing low
+    # (it is never discarded). The same holds the other way round for a bar
+    # that undercuts a confirmed swing low.
     pivots = [(start, "L")]
     direction, extreme = "up", start
     for i in range(start + 1, end):
         if direction == "up":
-            if low[i] < low[pivots[-1][0]]:  # undercut the swing low: move it
-                pivots[-1] = (i, "L")
+            if low[i] < low[pivots[-1][0]]:
+                anchor = pivots[-1][0]
+                if high[extreme] < low[anchor] * (1 + threshold):  # no real rally yet: move the low
+                    pivots[-1] = (i, "L")
+                else:
+                    pivots.append((extreme, "H"))
+                    direction = "down"
                 extreme = i
             elif high[i] >= high[extreme]:
                 extreme = i
@@ -46,9 +65,9 @@ def _zigzag(high, low, start, end, threshold):
                 pivots.append((extreme, "H"))
                 direction, extreme = "down", i
         else:
-            if high[i] > high[pivots[-1][0]]:  # exceeded the swing high: move it
-                pivots[-1] = (i, "H")
-                extreme = i
+            if high[i] > high[pivots[-1][0]]:
+                pivots.append((extreme, "L"))
+                direction, extreme = "up", i
             elif low[i] <= low[extreme]:
                 extreme = i
             elif high[i] >= low[extreme] * (1 + threshold):
@@ -69,7 +88,19 @@ def detect_base(bars, end, cfg):
 
     start = max(0, end - cfg.max_base_bars)
     h0 = argmax(high, start, end)
-    base_bars = end - h0
+    # The base high must be the top of the latest advance. Two highs are not:
+    # one followed by a decline deeper than any workable base (the top of an
+    # earlier advance, often before a Stage 4 decline), and the first bar of a
+    # window that cut into a decline (higher prices just before it). For those,
+    # look again for the high after the low that followed.
+    while end - 1 - h0 >= cfg.min_base_bars:
+        low_i = argmin(low, h0 + 1, end)
+        too_deep = (high[h0] - low[low_i]) / high[h0] > cfg.max_first_depth
+        edge_cut = h0 == start and start > 0 and high[start - 1] >= high[start]
+        if not (too_deep or edge_cut) or end - 1 - low_i < cfg.min_base_bars:
+            break
+        h0 = argmax(high, low_i + 1, end)
+    base_bars = end - 1 - h0  # bars since the base high
     if base_bars < cfg.min_base_bars:
         return {
             "valid": False,
@@ -172,41 +203,32 @@ def detect_base(bars, end, cfg):
     }
 
 
-def _recent_failed_breakout(bars, cfg, pivot):
-    """An earlier, lower pivot that price closed above and then lost, within the scan window."""
-    n = len(bars)
-    close = bars.close
-    for end in range(n - 1, max(cfg.min_base_bars + 2, n - cfg.breakout_scan_bars) - 1, -1):
-        base = detect_base(bars, end, cfg)
-        if not base["valid"] or base["pivot"] >= pivot:
-            continue
-        crossed = next((i for i in range(base["pivot_index"] + 1, n) if close[i] > base["pivot"]),
-                       None)
-        if crossed is not None and close[-1] < base["pivot"]:
-            return {"pivot": base["pivot"], "date": bars.dates[crossed]}
-    return None
-
-
-def analyze_entry(bars, cfg):
-    """Current VCP / pivot entry status for the latest bar."""
-    n = len(bars)
-    close, vol = bars.close, bars.volume
-    latest = detect_base(bars, n, cfg)
-
-    base, base_end = None, None
-    for end in range(n, max(cfg.min_base_bars + 2, n - cfg.breakout_scan_bars) - 1, -1):
-        found = latest if end == n else detect_base(bars, end, cfg)
-        if found["valid"]:
-            base, base_end = found, end
-            break
-    if base is None:
-        return {"status": "no_base", "actionable": False, "reasons": latest.get("reasons", []),
-                "base": latest}
-
+def _first_close_above(close, base):
     pivot = base["pivot"]
-    breakout = next((i for i in range(base["pivot_index"] + 1, n) if close[i] > pivot), None)
-    price = close[-1]
-    out = {
+    return next((i for i in range(base["pivot_index"] + 1, len(close)) if close[i] > pivot), None)
+
+
+def _breakout_volume(bars, pivot, first, cfg):
+    """Highest volume ratio (vs the prior 50-day average) among closes above the pivot.
+
+    A marginal poke above the pivot on light volume followed by a heavy-volume
+    close above it the next day is still a volume-confirmed breakout.
+    """
+    best, best_i = None, None
+    for i in range(first, len(bars)):
+        if bars.close[i] <= pivot:
+            continue
+        avg = mean(bars.volume[max(0, i - cfg.volume_avg_bars):i])
+        if avg:
+            ratio = bars.volume[i] / avg
+            if best is None or ratio > best:
+                best, best_i = ratio, i
+    return best, best_i
+
+
+def _plan(base, cfg, price):
+    pivot = base["pivot"]
+    return {
         "base": base,
         "pivot": pivot,
         "buy_range": [rnd(pivot), rnd(pivot * (1 + cfg.max_chase))],
@@ -214,48 +236,83 @@ def analyze_entry(bars, cfg):
         "risk_pct": base["stop_pct"],
         "risk_ok": base["stop_pct"] <= cfg.max_stop,
         "price": rnd(price),
+        "reasons": [],
+        "warnings": [],
     }
 
-    if breakout is None:
-        if base_end != n:
-            out.update(status="no_base", actionable=False,
-                       reasons=[f"base valid through {bars.dates[base_end - 1]} "
-                                f"but no longer: {'; '.join(latest.get('reasons', []))}"])
+
+def analyze_entry(bars, cfg):
+    """Current VCP / pivot entry status for the latest bar.
+
+    Two bases matter: ``setup``, a valid base as of today whose pivot has not been
+    crossed, and ``broken``, the most recent base (as of any of the last
+    ``breakout_scan_bars`` bars) that price has closed above. Once a base has
+    been broken out of, the breakout is judged against that base's pivot, so a
+    pullback inside the buy range is not mistaken for a new contraction and a
+    close back under the pivot is a failed breakout, not a fresh setup.
+    """
+    n = len(bars)
+    close = bars.close
+    price = close[-1]
+    latest = detect_base(bars, n, cfg)
+    setup = latest if latest["valid"] and _first_close_above(close, latest) is None else None
+
+    broken, crossed, last_valid_end = None, None, None
+    for end in range(n, max(cfg.min_base_bars + 2, n - cfg.breakout_scan_bars) - 1, -1):
+        base = latest if end == n else detect_base(bars, end, cfg)
+        if not base["valid"]:
+            continue
+        last_valid_end = last_valid_end or end
+        crossed = _first_close_above(close, base)
+        if crossed is not None:
+            broken = base
+            break
+
+    if broken is not None:
+        pivot = broken["pivot"]
+        extension = price / pivot - 1
+        # Past the buy range with a new base already formed above it: judge the new base.
+        moved_on = price >= pivot and extension > cfg.max_chase and setup is not None
+        if not moved_on:
+            out = _plan(broken, cfg, price)
+            if setup is not None:
+                out["warnings"].append(f"new pivot forming at {setup['pivot']} "
+                                       f"({setup['pivot_date']})")
+            if price < pivot:
+                status = "stopped_out" if price < broken["stop"] else "failed_breakout"
+                ratio, confirm = None, None
+            else:
+                ratio, confirm = _breakout_volume(bars, pivot, crossed, cfg)
+                if extension > cfg.max_chase:
+                    status = "extended"
+                elif ratio is None or ratio < cfg.breakout_volume_ratio:
+                    status = "breakout_unconfirmed"
+                else:
+                    status = "breakout"
+            out.update(
+                status=status,
+                actionable=status == "breakout",
+                breakout_date=bars.dates[crossed],
+                days_since_breakout=n - 1 - crossed,
+                breakout_volume_ratio=rnd(ratio, 2),
+                volume_confirmed_on=bars.dates[confirm] if confirm is not None else None,
+                extension=rnd(extension),
+            )
             return out
-        below = 1 - price / pivot
+
+    if setup is not None:
+        out = _plan(setup, cfg, price)
+        below = 1 - price / setup["pivot"]
         status = "near_pivot" if below <= cfg.near_pivot else "forming"
-        out.update(status=status, actionable=status == "near_pivot", below_pivot=rnd(below),
-                   reasons=[])
-        failed = _recent_failed_breakout(bars, cfg, pivot)
-        if failed:
-            # A breakout that reversed deeply enough re-forms the base with its high as
-            # the new pivot; keep the failure visible rather than calling it a clean setup.
-            out["warnings"] = [
-                f"failed breakout: closed above the earlier pivot {failed['pivot']} on "
-                f"{failed['date']} and is back below it"
-            ]
+        out.update(status=status, actionable=status == "near_pivot", below_pivot=rnd(below))
+        if broken is not None:
+            out["warnings"].append(f"earlier breakout above {broken['pivot']} on "
+                                   f"{bars.dates[crossed]} ran past the buy range")
         return out
 
-    avg = mean(vol[max(0, breakout - cfg.volume_avg_bars):breakout])
-    vol_ratio = vol[breakout] / avg if avg else None
-    extension = price / pivot - 1
-    if price < base["stop"]:
-        status = "stopped_out"
-    elif price < pivot:
-        status = "failed_breakout"
-    elif extension > cfg.max_chase:
-        status = "extended"
-    elif vol_ratio is None or vol_ratio < cfg.breakout_volume_ratio:
-        status = "breakout_unconfirmed"
-    else:
-        status = "breakout"
-    out.update(
-        status=status,
-        actionable=status == "breakout",
-        breakout_date=bars.dates[breakout],
-        days_since_breakout=n - 1 - breakout,
-        breakout_volume_ratio=rnd(vol_ratio, 2),
-        extension=rnd(extension),
-        reasons=[],
-    )
-    return out
+    reasons = latest.get("reasons", [])
+    if last_valid_end is not None and last_valid_end != n:
+        reasons = [f"base valid through {bars.dates[last_valid_end - 1]} but no longer: "
+                   f"{'; '.join(reasons)}"]
+    return {"status": "no_base", "actionable": False, "reasons": reasons, "base": latest,
+            "warnings": []}

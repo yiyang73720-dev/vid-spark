@@ -25,7 +25,10 @@ def _rs_overrides(values):
     out = {}
     for value in values or []:
         ticker, _, rating = value.partition("=")
-        out[ticker.strip().upper()] = float(rating)
+        try:
+            out[ticker.strip().upper()] = float(rating)
+        except ValueError:
+            raise SystemExit(f"--rs expects TICKER=RATING, got {value!r}") from None
     return out
 
 

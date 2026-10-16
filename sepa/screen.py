@@ -97,7 +97,15 @@ def scan(data_dir, tickers=None, benchmark="SPY", asof=None, rs_overrides=None, 
     universe gives a more meaningful criterion 8.
     """
     cfg = cfg or Config()
+    if asof:
+        normalized = data_mod.parse_date(asof)
+        if normalized is None:
+            raise SystemExit(f"--asof must be a date like 2025-06-30, got {asof!r}")
+        asof = normalized
     rs_overrides = {k.upper(): v for k, v in (rs_overrides or {}).items()}
+    for ticker, rating in rs_overrides.items():
+        if not isinstance(rating, (int, float)) or not 1 <= rating <= 99:
+            raise SystemExit(f"RS rating for {ticker} must be a number from 1 to 99, got {rating!r}")
     benchmark = (benchmark or "").upper() or None
     universe = data_mod.list_tickers(data_dir)
     if not universe:
@@ -131,9 +139,13 @@ def scan(data_dir, tickers=None, benchmark="SPY", asof=None, rs_overrides=None, 
             errors.setdefault(ticker, "no price data")
             continue
         bars = loaded[ticker]
-        fundamentals = data_mod.load_fundamentals(data_mod.fundamentals_path(data_dir, ticker))
-        result = evaluate(ticker, bars, fundamentals, ratings.get(ticker), scores.get(ticker),
-                          bench, cfg, asof)
+        try:
+            fundamentals = data_mod.load_fundamentals(data_mod.fundamentals_path(data_dir, ticker))
+            result = evaluate(ticker, bars, fundamentals, ratings.get(ticker), scores.get(ticker),
+                              bench, cfg, asof)
+        except Exception as exc:  # one bad file must not abort the whole screen
+            errors[ticker] = f"{type(exc).__name__}: {exc}"
+            continue
         lag = (date.fromisoformat(last_date) - date.fromisoformat(bars.dates[-1])).days
         result["stale"] = lag > STALE_DAYS
         results.append(result)

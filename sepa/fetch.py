@@ -8,9 +8,10 @@ is only imported by ``python3 -m sepa fetch``.
 import json
 import math
 import os
-from datetime import date
+from datetime import date, timedelta
 
 from .data import fundamentals_dir, fundamentals_path, prices_dir
+from .indicators import median
 
 _EPS_ROWS = ("Diluted EPS", "Basic EPS")
 _ROWS = {
@@ -30,9 +31,12 @@ def _clean(value):
 
 
 def _row(frame, names, column):
+    """First non-missing value among the alternative row labels."""
     for name in names:
         if name in frame.index:
-            return _clean(frame.at[name, column])
+            value = _clean(frame.at[name, column])
+            if value is not None:
+                return value
     return None
 
 
@@ -50,45 +54,61 @@ def prices_to_rows(history):
     return rows
 
 
-def fundamentals_from_frames(income, earnings):
+def fundamentals_from_frames(income, earnings, today=None):
     """Merge ``quarterly_income_stmt`` and ``get_earnings_dates`` into the fundamentals schema.
 
-    Income statement columns give period ends, revenue and margins (usually
-    only 4-6 quarters). Earnings dates give reported EPS and the consensus
-    estimate for more quarters; each report is matched to the latest period
-    that ended within 100 days before it.
+    Income statement columns give period ends, revenue and margins (Yahoo
+    serves about 5 quarters, so revenue acceleration usually needs another
+    source). Earnings dates give reported EPS and the consensus estimate for
+    more quarters; each past report is matched to the latest period that ended
+    within 100 days before it. A report with no matching column gets an
+    estimated period end (report date minus the median reporting lag) so the
+    year-ago match still lines up.
+
+    EPS uses one basis for every quarter, so YoY growth never compares GAAP
+    with adjusted figures: Yahoo's reported (adjusted) EPS when any is
+    available, otherwise GAAP diluted EPS. Returns
+    ``{"eps_basis": ..., "quarters": [...]}``.
     """
+    today = today or date.today()
     quarters = {}
     if income is not None and not income.empty:
         for column in income.columns:
             end = column.date().isoformat()
-            q = {"period_end": end, "eps": _row(income, _EPS_ROWS, column)}
+            q = {"period_end": end, "eps_gaap": _row(income, _EPS_ROWS, column)}
             for key, names in _ROWS.items():
                 q[key] = _row(income, names, column)
             quarters[end] = q
 
+    reports = []
     if earnings is not None and not earnings.empty:
-        ends = sorted(quarters)
         for stamp, rec in earnings.iterrows():
-            reported = _clean(rec.get("Reported EPS"))
-            if reported is None:
-                continue  # future report date
             day = stamp.date()
-            match = [e for e in ends if 0 < (day - _as_date(e)).days <= 100]
-            key = match[-1] if match else None
-            if key is None:
-                # No income-statement column: key the quarter by its report date.
-                key = day.isoformat()
-                quarters.setdefault(key, {"period_end": None})
-            q = quarters[key]
-            q["reported"] = day.isoformat()
-            q["eps"] = reported  # the reported (adjusted) EPS analysts compare to estimates
-            q["eps_estimate"] = _clean(rec.get("EPS Estimate"))
-    return [quarters[k] for k in sorted(quarters)]
+            if day > today:
+                continue  # upcoming report
+            reports.append((day, _clean(rec.get("Reported EPS")), _clean(rec.get("EPS Estimate"))))
+    reports.sort()
 
+    ends = sorted(quarters)
+    lags, unmatched = [], []
+    for day, eps, estimate in reports:
+        match = [e for e in ends if 0 < (day - date.fromisoformat(e)).days <= 100]
+        if not match:
+            unmatched.append((day, eps, estimate))
+            continue
+        lags.append((day - date.fromisoformat(match[-1])).days)
+        quarters[match[-1]].update(reported=day.isoformat(), eps_reported=eps, eps_estimate=estimate)
+    lag = int(median(lags)) if lags else 35
+    for day, eps, estimate in unmatched:
+        end = (day - timedelta(days=lag)).isoformat()
+        q = quarters.setdefault(end, {"period_end": end, "period_end_estimated": True})
+        q.update(reported=day.isoformat(), eps_reported=eps, eps_estimate=estimate)
 
-def _as_date(text):
-    return date.fromisoformat(text)
+    basis = ("reported" if any(q.get("eps_reported") is not None for q in quarters.values())
+             else "gaap_diluted")
+    for q in quarters.values():
+        q["eps"] = q.get("eps_reported") if basis == "reported" else q.get("eps_gaap")
+    return {"eps_basis": basis, "quarters": [quarters[k] for k in sorted(quarters)]}
 
 
 def fetch(tickers, data_dir, period="2y", with_fundamentals=True, log=print):
@@ -126,10 +146,9 @@ def fetch(tickers, data_dir, period="2y", with_fundamentals=True, log=print):
                 earnings = tk.get_earnings_dates(limit=16)
             except Exception as exc:
                 log(f"{ticker}: earnings dates unavailable ({exc})")
-            quarters = fundamentals_from_frames(income, earnings)
-            if quarters:
+            merged = fundamentals_from_frames(income, earnings)
+            if merged["quarters"]:
                 with open(fundamentals_path(data_dir, ticker), "w") as fh:
-                    json.dump({"ticker": ticker, "source": "yfinance", "quarters": quarters},
-                              fh, indent=1)
+                    json.dump({"ticker": ticker, "source": "yfinance", **merged}, fh, indent=1)
         log(f"{ticker}: {len(rows)} bars")
     return failed

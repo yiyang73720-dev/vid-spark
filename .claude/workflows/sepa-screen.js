@@ -14,28 +14,47 @@ export const meta = {
 
 const A = args || {}
 const toList = v => (Array.isArray(v) ? v : typeof v === 'string' ? v.split(/[\s,]+/) : [])
-const tickers = [...new Set(toList(A.tickers).map(t => String(t).trim().toUpperCase()).filter(Boolean))]
-const dataDir = A.dataDir || 'sepa-data'
-const reportsDir = `${dataDir}/reports`
+// Everything below ends up in shell commands, so validate it instead of trusting it.
+const TICKER = /^[A-Z0-9][A-Z0-9.^=-]{0,14}$/
+const rawTickers = [...new Set(toList(A.tickers).map(t => String(t).trim().toUpperCase()).filter(Boolean))]
+const badTickers = rawTickers.filter(t => !TICKER.test(t))
+const tickers = rawTickers.filter(t => TICKER.test(t))
 const benchmark = String(A.benchmark || 'SPY').toUpperCase()
+const asof = A.asof ? String(A.asof) : null
+const rsEntries = Object.entries(A.rs || {}).map(([t, r]) => [String(t).toUpperCase(), Number(r)])
+const problems = [
+  ...badTickers.map(t => `invalid ticker ${JSON.stringify(t)}`),
+  TICKER.test(benchmark) ? null : `invalid benchmark ${JSON.stringify(benchmark)}`,
+  asof && !/^\d{4}-\d{2}-\d{2}$/.test(asof) ? `asof must be YYYY-MM-DD, got ${JSON.stringify(asof)}` : null,
+  ...rsEntries.filter(([t, r]) => !TICKER.test(t) || !Number.isFinite(r) || r < 1 || r > 99)
+    .map(([t, r]) => `rs for ${JSON.stringify(t)} must be a number from 1 to 99, got ${JSON.stringify(A.rs[t] ?? r)}`),
+].filter(Boolean)
+const quote = s => `'${String(s).replace(/'/g, `'\\''`)}'`
+const dataDir = String(A.dataDir || 'sepa-data').replace(/\/+$/, '')
+const reportsDir = `${dataDir}/reports`
 const doFetch = A.fetch !== false
-const asof = A.asof || null
-const universeFile = A.universeFile || null
-const rsOverrides = Object.entries(A.rs || {}).map(([t, r]) => `${String(t).toUpperCase()}=${Number(r)}`)
-const maxCandidates = Number(A.maxCandidates) > 0 ? Number(A.maxCandidates) : 12
+const universeFile = A.universeFile ? String(A.universeFile) : null
+const maxCandidates = Number(A.maxCandidates) > 0 ? Math.floor(Number(A.maxCandidates)) : 12
 const asofText = asof ? `as of ${asof} (ignore anything published after that date)` : 'as of the latest data'
 
+if (problems.length) return { error: `Invalid args: ${problems.join('; ')}` }
 if (!tickers.length && !universeFile) {
   return { error: 'Pass args.tickers (e.g. ["NVDA","ANET"]) and/or args.universeFile (a file of tickers, one per line).' }
 }
 
-const tickerArgs = tickers.length ? `--tickers ${tickers.join(' ')}` : ''
-const fetchCmd = `python3 -m sepa fetch --data-dir ${dataDir} --benchmark ${benchmark} ${tickerArgs}${universeFile ? ` --tickers-file ${universeFile}` : ''}`
+// Evaluate the given tickers, or the universe file when no tickers are given. RS always
+// ranks every price file in the data directory, so a universe file broadens criterion 8.
+const evalArgs = tickers.length ? `--tickers ${tickers.join(' ')}` : `--tickers-file ${quote(universeFile)}`
+const fetchCmd = [
+  `python3 -m sepa fetch --data-dir ${quote(dataDir)} --benchmark ${benchmark}`,
+  tickers.length ? `--tickers ${tickers.join(' ')}` : '',
+  universeFile ? `--tickers-file ${quote(universeFile)}` : '',
+].filter(Boolean).join(' ')
 const scanCmd = [
-  `python3 -m sepa scan --data-dir ${dataDir} --benchmark ${benchmark} --out-dir ${reportsDir}`,
-  tickerArgs,
+  `python3 -m sepa scan --data-dir ${quote(dataDir)} --benchmark ${benchmark} --out-dir ${quote(reportsDir)}`,
+  evalArgs,
   asof ? `--asof ${asof}` : '',
-  rsOverrides.length ? `--rs ${rsOverrides.join(' ')}` : '',
+  rsEntries.length ? `--rs ${rsEntries.map(([t, r]) => `${t}=${r}`).join(' ')}` : '',
 ].filter(Boolean).join(' ')
 
 const NUM = { type: ['number', 'null'] }
@@ -52,7 +71,8 @@ const MECH_SCHEMA = {
     rs_note: STR,
     market: STR,
     errors: { type: 'array', items: { type: 'string' } },
-    tickers: {
+    screened: { type: 'number' },
+    candidates: {
       type: 'array',
       items: {
         type: 'object',
@@ -75,7 +95,7 @@ const MECH_SCHEMA = {
       },
     },
   },
-  required: ['ok', 'tickers'],
+  required: ['ok', 'screened', 'candidates'],
 }
 
 const EARN_SCHEMA = {
@@ -175,7 +195,7 @@ Work from the repository root: the directory containing the \`sepa/\` package (\
 2. Run the scan:
    ${scanCmd}
    It writes ${reportsDir}/<TICKER>.json and ${reportsDir}/summary.json and prints the summary.
-3. Return from summary.json: ok=true, asof, rs_universe_size, rs_note, errors (as "TICKER: message" strings), market (one line: benchmark stage label and whether its trend-template price criteria are met, or null), and for EVERY entry in summary.tickers: ticker, stage, trend_passed, trend_failed, rs_rating, pillar_trend (= pillars.trend), pillar_earnings (= pillars.earnings), entry_status, pivot, extension, below_pivot, stop, candidate.`,
+3. Return from summary.json: ok=true, asof, rs_universe_size, rs_note, errors (as "TICKER: message" strings), market (one line: benchmark stage label and whether its trend-template price criteria are met, or null), screened (the number of entries in summary.tickers), and under \`candidates\` one row for EVERY entry in summary.tickers whose candidate is true (and only those): ticker, stage, trend_passed, trend_failed, rs_rating, pillar_trend (= pillars.trend), pillar_earnings (= pillars.earnings), entry_status, pivot, extension, below_pivot, stop, candidate. Check that the number of rows equals the length of summary.candidates.`,
   { label: 'sepa-scan', phase: 'Mechanical', schema: MECH_SCHEMA, effort: 'low' },
 )
 
@@ -183,26 +203,25 @@ if (!mech || !mech.ok) {
   return { error: `Mechanical stage failed: ${(mech && mech.error) || 'agent returned nothing'}`, notes: mech && mech.notes }
 }
 
-const byTicker = Object.fromEntries(mech.tickers.map(t => [t.ticker, t]))
-const failedTrend = mech.tickers.filter(t => !t.candidate)
-log(`${mech.tickers.length} screened; ${mech.tickers.length - failedTrend.length} pass the trend pillar (Stage 2 + Trend Template)`)
-if (failedTrend.length) {
-  log(`Dropped by the Trend Template: ${failedTrend.map(t => `${t.ticker}(${t.trend_passed ?? '?'}/8, stage ${t.stage ?? '?'})`).join(', ')}`)
-}
+const passed = mech.candidates.filter(t => t.candidate !== false)
+const byTicker = Object.fromEntries(passed.map(t => [t.ticker, t]))
+const dropped = Math.max(0, mech.screened - passed.length)
+log(`${mech.screened} screened; ${passed.length} pass the trend pillar (Stage 2 + Trend Template); ${dropped} dropped (listed in ${reportsDir}/summary.json)`)
 if (mech.rs_note) log(`RS: ${mech.rs_note} -> candidates can reach at most WATCH until RS is verified`)
 
 // Actionable entries first, then the strongest RS.
 const entryRank = { breakout: 0, near_pivot: 1, breakout_unconfirmed: 2, forming: 3, extended: 4 }
-let candidates = mech.tickers
-  .filter(t => t.candidate)
+let candidates = passed
+  .slice()
   .sort((a, b) => (entryRank[a.entry_status] ?? 5) - (entryRank[b.entry_status] ?? 5) || (b.rs_rating ?? 0) - (a.rs_rating ?? 0))
   .map(t => t.ticker)
-if (candidates.length > maxCandidates) {
-  log(`Researching the top ${maxCandidates} of ${candidates.length} candidates; not researched: ${candidates.slice(maxCandidates).join(', ')} (raise args.maxCandidates to include them)`)
+const notResearched = candidates.slice(maxCandidates)
+if (notResearched.length) {
+  log(`Researching the top ${maxCandidates} of ${candidates.length} candidates; not researched: ${notResearched.join(', ')} (raise args.maxCandidates to include them)`)
   candidates = candidates.slice(0, maxCandidates)
 }
 if (!candidates.length) {
-  return { asof: mech.asof, market: mech.market, rsNote: mech.rs_note, counts: { screened: mech.tickers.length, trendPass: 0 }, results: [], mechanical: mech.tickers }
+  return { asof: mech.asof, market: mech.market, rsNote: mech.rs_note, counts: { screened: mech.screened, trendPass: 0 }, results: [], summary: `${reportsDir}/summary.json` }
 }
 
 // --------------------------------------------------------- Per-candidate work
@@ -268,9 +287,12 @@ function tierOf(c) {
   const E = c.earnings && c.earnings.verdict
   const Acat = c.catalyst && c.catalyst.verdict
   const S = c.entry && c.entry.action
-  const refutes = (c.skeptics || []).filter(s => s && s.refuted).length
+  const skeptics = c.skeptics || []
+  const refutes = skeptics.filter(s => s && s.refuted).length
   if (E === 'fail' || Acat === 'fail' || refutes >= 2) return 'REJECT'
-  const clean = c.mech.pillar_trend === 'pass' && E === 'pass' && Acat === 'pass' && refutes === 0
+  // A skeptic that never answered is not a pass: without every lens the candidate stays WATCH.
+  const verified = skeptics.length === LENSES.length && skeptics.every(Boolean)
+  const clean = verified && c.mech.pillar_trend === 'pass' && E === 'pass' && Acat === 'pass' && refutes === 0
   if (clean && S === 'buy_now') return 'BUY'
   if (clean && S === 'alert_at_pivot') return 'READY'
   return 'WATCH'
@@ -300,7 +322,7 @@ const ORDER = { BUY: 0, READY: 1, WATCH: 2, REJECT: 3 }
 const finished = results.filter(Boolean).sort((a, b) => ORDER[a.tier] - ORDER[b.tier])
 const lost = candidates.filter(t => !finished.some(r => r.ticker === t))
 if (lost.length) log(`No result (agent failed or skipped) for: ${lost.join(', ')}`)
-const counts = { screened: mech.tickers.length, trendPass: mech.tickers.length - failedTrend.length, researched: finished.length }
+const counts = { screened: mech.screened, trendPass: passed.length, researched: finished.length }
 for (const r of finished) counts[r.tier] = (counts[r.tier] || 0) + 1
 log(`Tiers: ${Object.keys(ORDER).map(k => `${k} ${counts[k] || 0}`).join(', ')}`)
 
@@ -312,8 +334,8 @@ const written = await agent(
 Use only the data below; do not add new research or numbers.
 Market backdrop: ${mech.market || 'unknown'}. As-of: ${mech.asof || 'latest'}. RS note: ${mech.rs_note || 'none'}.
 Screened ${counts.screened}; ${counts.trendPass} passed the Trend Template + Stage 2 gate.
-Dropped mechanically: ${JSON.stringify(failedTrend.map(t => ({ ticker: t.ticker, trend_passed: t.trend_passed, failed: t.trend_failed, stage: t.stage })))}
-Not researched (cap): ${JSON.stringify(mech.tickers.filter(t => t.candidate && !candidates.includes(t.ticker)).map(t => t.ticker))}
+Dropped mechanically: ${dropped} tickers. Read ${reportsDir}/summary.json for them: every entry in \`tickers\` whose \`candidate\` is false, with trend_passed, trend_failed (criterion numbers) and stage.
+Not researched (cap): ${JSON.stringify(notResearched)}
 Researched candidates (already ranked BUY > READY > WATCH > REJECT):
 ${JSON.stringify(finished)}
 
@@ -321,7 +343,7 @@ Structure:
 1. 市场环境 (market backdrop and what it means for new buys)
 2. 结论总表: one row per researched candidate - tier, ticker, T/E/A/S verdicts, pivot, buy range, stop, risk %
 3. One section per candidate in tier order: 趋势 (T), 基本面 (E), 催化剂 (A), 入场点 (S), skeptic objections, and the concrete plan (buy now within range / buy-stop at pivot / wait for a new base / pass). Keep source links.
-4. 被机械筛除 (tickers dropped by the Trend Template, with the failed criteria numbers)
+4. 被机械筛除 (tickers dropped by the Trend Template or Stage, with the failed criteria numbers, from summary.json)
 5. A short disclaimer: mechanical screen plus research notes, not investment advice; verify prices before trading.`,
   { label: 'report', phase: 'Report', schema: REPORT_SCHEMA },
 )

@@ -152,4 +152,11 @@ def price_path(data_dir, ticker):
 
 
 def fundamentals_path(data_dir, ticker):
-    return os.path.join(fundamentals_dir(data_dir), f"{ticker}.json")
+    folder = fundamentals_dir(data_dir)
+    exact = os.path.join(folder, f"{ticker}.json")
+    if os.path.exists(exact):
+        return exact
+    for name in os.listdir(folder) if os.path.isdir(folder) else []:
+        if name.lower() == f"{ticker.lower()}.json":
+            return os.path.join(folder, name)
+    return exact

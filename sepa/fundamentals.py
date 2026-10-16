@@ -8,26 +8,43 @@ Fundamentals JSON (``<data-dir>/fundamentals/<TICKER>.json``)::
          "eps": 1.23, "eps_estimate": 1.10, "revenue": 1.2e9,
          "net_income": 3.1e8, "operating_income": 3.9e8, "gross_profit": 7.0e8}
       ],
-      "guidance": "raised"          # optional: raised | maintained | lowered
+      "guidance": "raised",         # optional: raised | maintained | lowered
+      "guidance_date": "2025-07-30" # when that guidance was given (needed with --asof)
     }
 
 Only ``period_end`` (or ``reported``) and ``eps`` are required; checks whose
 inputs are missing come back as ``pass: None``.
+
+With ``asof`` a quarter counts only once it was public: on its ``reported``
+date, or, when that is missing, ``report_lag_days`` after ``period_end``.
+Guidance counts only when its ``guidance_date`` is on or before ``asof``.
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 from .indicators import rnd
 
 _MARGIN_KEYS = ("net_income", "operating_income", "gross_profit")
 
 
-def _day(quarter):
-    text = quarter.get("period_end") or quarter.get("reported")
+def _iso(text):
     try:
         return date.fromisoformat(str(text)[:10]) if text else None
     except ValueError:
         return None
+
+
+def _day(quarter):
+    return _iso(quarter.get("period_end")) or _iso(quarter.get("reported"))
+
+
+def _public(quarter, cfg):
+    """The date a quarter's results became public (or a conservative estimate)."""
+    reported = _iso(quarter.get("reported"))
+    if reported:
+        return reported
+    end = _iso(quarter.get("period_end"))
+    return end + timedelta(days=cfg.report_lag_days) if end else None
 
 
 def _num(value):
@@ -73,9 +90,10 @@ def _check(cid, name, passed, detail=""):
 
 
 def analyze_fundamentals(data, cfg, asof=None):
-    quarters = [q for q in (data or {}).get("quarters", []) if _day(q)]
+    quarters = [q for q in ((data or {}).get("quarters") or []) if isinstance(q, dict) and _day(q)]
     if asof:
-        quarters = [q for q in quarters if str(q.get("reported") or q.get("period_end"))[:10] <= asof]
+        cutoff = _iso(asof)
+        quarters = [q for q in quarters if _public(q, cfg) <= cutoff]
     quarters.sort(key=_day)
     if not quarters:
         return {"core_pass": None, "checks": [], "history": [], "missing": ["quarters"]}
@@ -153,10 +171,15 @@ def analyze_fundamentals(data, cfg, asof=None):
     )
 
     guidance = str((data or {}).get("guidance") or "").lower() or None
+    guidance_note = guidance or "not supplied"
+    if guidance and asof:
+        given = _iso((data or {}).get("guidance_date"))
+        if given is None or given > _iso(asof):
+            guidance, guidance_note = None, f"{guidance_note} (ignored: no guidance_date on or before {asof})"
     e6 = _check(
         "E6", "Guidance raised",
         {"raised": True, "lowered": False, "maintained": False}.get(guidance),
-        guidance or "not supplied",
+        guidance_note,
     )
 
     core = [e1, e2, e3, e4]
