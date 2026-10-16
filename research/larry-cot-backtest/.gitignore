@@ -3,5 +3,8 @@
 data/
 ext/
 work/
+# battery/ (spec v2): extra inputs from tools/fetch_data_battery.py, outputs of battery/run_battery.sh
+ext2/
+work2/
 __pycache__/
 *.pyc
